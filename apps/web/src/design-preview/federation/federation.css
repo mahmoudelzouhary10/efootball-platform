@@ -1,0 +1,72 @@
+/* Concept B — Federation. Scoped under .fd. Light, editorial, official. */
+.fd {
+  --fd-paper: #ffffff;
+  --fd-mist: #f3f6f4;
+  --fd-mist-2: #e8eeea;
+  --fd-line: #dde5e0;
+  --fd-ink: #0f1e19;
+  --fd-ink-2: #3c4c45;
+  --fd-mute: #5b6b63;
+  --fd-green: #0b6e4f;
+  --fd-green-deep: #064432;
+  --fd-coral: #e8482b;
+  --fd-gold: #b98900;
+  background: var(--fd-paper);
+  color: var(--fd-ink);
+  font-family: 'Archivo', 'Alexandria', system-ui, sans-serif;
+  min-height: 100dvh;
+}
+[dir='rtl'] .fd {
+  font-family: 'Alexandria', 'Archivo', system-ui, sans-serif;
+}
+.fd-display {
+  font-family: 'Archivo', 'Alexandria', sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.035em;
+  line-height: 0.95;
+}
+[dir='rtl'] .fd-display {
+  font-family: 'Alexandria', 'Archivo', sans-serif;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.2;
+}
+.fd-num {
+  font-family: 'Archivo', sans-serif;
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+/* Fine grid texture, like a printed fixture list */
+.fd-grid {
+  background-image:
+    linear-gradient(var(--fd-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--fd-line) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+/* Pitch-green feature panel with mown stripes */
+.fd-pitch {
+  background-color: var(--fd-green);
+  background-image: repeating-linear-gradient(90deg, rgb(255 255 255 / 0.05) 0 56px, transparent 56px 112px);
+}
+@keyframes fd-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+.fd-blink {
+  animation: fd-blink 1.2s steps(2) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fd-blink {
+    animation: none;
+  }
+}
+
+/* Grid items may shrink below their content width (prevents mobile blowout). */
+.fd :where(.grid) > * {
+  min-width: 0;
+}
+.fd {
+  overflow-x: clip;
+}

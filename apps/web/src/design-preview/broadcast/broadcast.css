@@ -1,0 +1,101 @@
+/* Concept A — Matchday Broadcast. Scoped under .bc. */
+.bc {
+  --bc-night: #07112b;
+  --bc-deep: #0b1838;
+  --bc-panel: #10224d;
+  --bc-plate: #ffffff;
+  --bc-ink: #0a1430;
+  --bc-red: #e10600;
+  --bc-red-deep: #a50400;
+  --bc-sky: #4fb0ff;
+  --bc-mute: #9fb0d6;
+  --bc-line: rgb(255 255 255 / 0.12);
+  --bc-skew: -11deg;
+  background: var(--bc-night);
+  color: #fff;
+  font-family: 'Barlow', 'Noto Kufi Arabic', system-ui, sans-serif;
+  min-height: 100dvh;
+}
+[dir='rtl'] .bc {
+  --bc-skew: 11deg;
+  font-family: 'Noto Kufi Arabic', 'Barlow', system-ui, sans-serif;
+}
+.bc-display {
+  font-family: 'Barlow Condensed', 'Noto Kufi Arabic', sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 0.95;
+}
+[dir='rtl'] .bc-display {
+  font-family: 'Noto Kufi Arabic', 'Barlow Condensed', sans-serif;
+  line-height: 1.25;
+}
+.bc-cond {
+  font-family: 'Barlow Condensed', 'Noto Kufi Arabic', sans-serif;
+}
+[dir='rtl'] .bc-cond {
+  font-family: 'Noto Kufi Arabic', 'Barlow Condensed', sans-serif;
+}
+/* Latin-only condensed (scores, codes) regardless of direction */
+.bc-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+/* Slanted broadcast plate: the parent is skewed, the content is un-skewed. */
+.bc-skew {
+  transform: skewX(var(--bc-skew));
+}
+.bc-unskew {
+  transform: skewX(calc(var(--bc-skew) * -1));
+}
+/* Stadium texture: diagonal mown-grass bands */
+.bc-stripes {
+  background-image: repeating-linear-gradient(
+    calc(90deg + var(--bc-skew) * 3),
+    rgb(255 255 255 / 0.035) 0 64px,
+    transparent 64px 128px
+  );
+}
+.bc-glow {
+  background:
+    radial-gradient(60% 80% at 50% 0%, rgb(79 176 255 / 0.22), transparent 70%),
+    radial-gradient(40% 60% at 90% 100%, rgb(225 6 0 / 0.18), transparent 70%);
+}
+@keyframes bc-ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+[dir='rtl'] .bc-ticker-track {
+  animation-direction: reverse;
+}
+.bc-ticker-track {
+  animation: bc-ticker 40s linear infinite;
+}
+@keyframes bc-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+.bc-pulse {
+  animation: bc-pulse 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bc-ticker-track,
+  .bc-pulse {
+    animation: none;
+  }
+}
+
+/* Grid items may shrink below their content width (prevents mobile blowout). */
+.bc :where(.grid) > * {
+  min-width: 0;
+}
+.bc {
+  overflow-x: clip;
+}

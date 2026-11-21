@@ -1,0 +1,77 @@
+/* Concept C — Card Pack. Scoped under .cp. Collectible-card language from eFootball itself. */
+.cp {
+  --cp-stage: #110a22;
+  --cp-stage-2: #170f2e;
+  --cp-panel: #1e1440;
+  --cp-panel-2: #281b54;
+  --cp-line: rgb(196 181 253 / 0.14);
+  --cp-ink: #f5f3ff;
+  --cp-mute: #a89cd0;
+  --cp-mint: #4ade80;
+  --cp-flame: #fb7185;
+  --cp-gold-1: #fde68a;
+  --cp-gold-2: #d4a017;
+  --cp-holo: linear-gradient(135deg, #38e1ff, #8b5cf6 45%, #f472b6);
+  background:
+    radial-gradient(60rem 40rem at 85% -10%, rgb(139 92 246 / 0.22), transparent 60%),
+    radial-gradient(50rem 30rem at -10% 110%, rgb(56 225 255 / 0.12), transparent 60%),
+    var(--cp-stage);
+  color: var(--cp-ink);
+  font-family: 'Changa', system-ui, sans-serif;
+  min-height: 100dvh;
+}
+.cp-display {
+  font-family: 'Changa', sans-serif;
+  font-weight: 800;
+  line-height: 1.05;
+}
+.cp-num {
+  font-family: 'Chakra Petch', sans-serif;
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+.cp-hex {
+  clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0% 50%);
+}
+.cp-card-cut {
+  clip-path: polygon(0 0, 100% 0, 100% 88%, 50% 100%, 0 88%);
+}
+/* Holographic sheen for top-tier cards; static, no animation by default */
+.cp-holo {
+  background: var(--cp-holo);
+}
+.cp-gold {
+  background: linear-gradient(160deg, var(--cp-gold-1), var(--cp-gold-2) 55%, #7a5a00);
+}
+.cp-silver {
+  background: linear-gradient(160deg, #f1f5f9, #94a3b8 55%, #475569);
+}
+.cp-bronze {
+  background: linear-gradient(160deg, #fed7aa, #c2410c 60%, #7c2d12);
+}
+.cp-dots {
+  background-image: radial-gradient(rgb(255 255 255 / 0.08) 1px, transparent 1px);
+  background-size: 10px 10px;
+}
+@keyframes cp-float {
+  50% {
+    transform: translateY(-6px) rotate(var(--r, 0deg));
+  }
+}
+.cp-float {
+  animation: cp-float 6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cp-float {
+    animation: none;
+  }
+}
+
+/* Grid items may shrink below their content width (prevents mobile blowout). */
+.cp :where(.grid) > * {
+  min-width: 0;
+}
+.cp {
+  overflow-x: clip;
+}

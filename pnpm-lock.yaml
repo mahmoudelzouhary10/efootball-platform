@@ -123,6 +123,27 @@ importers:
       '@efp/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@fontsource/alexandria':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/archivo':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/barlow':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/barlow-condensed':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/chakra-petch':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/changa':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/noto-kufi-arabic':
+        specifier: ^5.3.0
+        version: 5.3.0
       lucide-react:
         specifier: ^1.77.0
         version: 1.77.0(@types/react@19.3.0)(react@19.3.1)
@@ -716,6 +737,27 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
+
+  '@fontsource/alexandria@5.3.0':
+    resolution: {integrity: sha512-it7vTsYG4pB0G00g49z5bwdMtf41EacTIZQFSxcDRajlV4xrCAz9+0/FMoWo3GD50Ifu5+t6ta22xsmnX5Akwg==}
+
+  '@fontsource/archivo@5.3.0':
+    resolution: {integrity: sha512-5DIMgPVJRi62OqdOVoogCFxP73EkNM/E0YVTSDIQlDEJfDbxqZduwM/YoNZwC9Sx1CDgpKinqf8ckRY1QNIecw==}
+
+  '@fontsource/barlow-condensed@5.3.0':
+    resolution: {integrity: sha512-RA7MmIx0v3eQ6Gcf74qLVLOwLB0GpPOzx+eU9iG/AmCnSJGcIWYeU8y6CEMGZ210MGwGg5CZhzLkkvyZdTTk1g==}
+
+  '@fontsource/barlow@5.3.0':
+    resolution: {integrity: sha512-tGR0y6QObRtKv71MOth44222+mdNFM/ZWFWDV1VLzNbG4oK9PNRlyJzmkck4vHAi9ibHBXgt4SlY51amFP55CA==}
+
+  '@fontsource/chakra-petch@5.3.0':
+    resolution: {integrity: sha512-QZvbM/q2R6n1pg2x+TJPftZmBNS+ADU37L4Z4L/6UJIz+JZ/SRaEf8usPFRiP7Ht28sIideMu/Bm1SnGlSrwNw==}
+
+  '@fontsource/changa@5.3.0':
+    resolution: {integrity: sha512-zKPYCAB4338o8g7SejgbXPlNbENNr9Y7aJMzrU+umlVBiPdU8tvJYiREHFbLFxge5mI89ktaR2gt7Q1Pq15Zsg==}
+
+  '@fontsource/noto-kufi-arabic@5.3.0':
+    resolution: {integrity: sha512-3iSq8i00+omfUXFXuCUrNDz1ghck3HDXul3p3iAfY0Vd9NZqI1NcUNoAVPiUW+BaEQGYQSi+r0R3d1eoNK3OBg==}
 
   '@formatjs/fast-memoize@3.1.7':
     resolution: {integrity: sha512-zXfhLpvA6T7+efdt9JLbBwZ00tT7NsBMDVnDu8rpHeNNv8KfRZAMo2gkG0k9lK/Nzc//3kJ9pImsfuJxk3KhUA==}
@@ -4237,6 +4279,20 @@ snapshots:
 
   '@esbuild/win32-x64@0.28.2':
     optional: true
+
+  '@fontsource/alexandria@5.3.0': {}
+
+  '@fontsource/archivo@5.3.0': {}
+
+  '@fontsource/barlow-condensed@5.3.0': {}
+
+  '@fontsource/barlow@5.3.0': {}
+
+  '@fontsource/chakra-petch@5.3.0': {}
+
+  '@fontsource/changa@5.3.0': {}
+
+  '@fontsource/noto-kufi-arabic@5.3.0': {}
 
   '@formatjs/fast-memoize@3.1.7': {}
 
