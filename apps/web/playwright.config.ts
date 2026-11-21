@@ -39,7 +39,9 @@ export default defineConfig({
     },
     {
       command: `pnpm exec next start -p ${E2E.webPort}`,
-      url: E2E.webUrl,
+      // A static file: servers start before globalSetup migrates the database, so a data page
+      // would 500 on a fresh CI database.
+      url: `${E2E.webUrl}/icon.svg`,
       env: { API_INTERNAL_URL: E2E.apiUrl, NEXT_TELEMETRY_DISABLED: '1' },
       reuseExistingServer: false,
       timeout: 60_000,
