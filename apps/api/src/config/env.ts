@@ -11,7 +11,9 @@ const envSchema = z.object({
   APP_PUBLIC_URL: z.string().url(),
   TRUST_PROXY_HOPS: z.coerce.number().int().min(0).default(0),
   COOKIE_SECURE: bool.default(false),
-  MAIL_TRANSPORT: z.enum(['smtp', 'log']).default('log'),
+  MAIL_TRANSPORT: z.enum(['smtp', 'log', 'file']).default('log'),
+  /** Only for MAIL_TRANSPORT=file (end-to-end tests): JSON-lines file that receives every email. */
+  MAIL_FILE: z.string().optional(),
   SMTP_URL: z.string().optional(),
   MAIL_FROM: z.string().default('eFootball Platform <no-reply@localhost>'),
   HIBP_ENABLED: bool.default(false),
@@ -35,6 +37,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   if (cfg.NODE_ENV === 'production') {
     if (!cfg.COOKIE_SECURE) throw new Error('COOKIE_SECURE must be true in production');
     if (cfg.MAIL_TRANSPORT !== 'smtp') throw new Error('MAIL_TRANSPORT must be smtp in production');
+  }
+  if (cfg.MAIL_TRANSPORT === 'file' && !cfg.MAIL_FILE) {
+    throw new Error('MAIL_FILE is required when MAIL_TRANSPORT=file');
   }
   if (cfg.MAIL_TRANSPORT === 'smtp' && !cfg.SMTP_URL) {
     throw new Error('SMTP_URL is required when MAIL_TRANSPORT=smtp');

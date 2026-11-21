@@ -10,3 +10,6 @@ coverage/
 .DS_Store
 *.tsbuildinfo
 next-env.d.ts
+.e2e-mail.jsonl
+test-results/
+playwright-report/

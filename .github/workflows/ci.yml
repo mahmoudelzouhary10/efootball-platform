@@ -12,7 +12,7 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     services:
       postgres:
@@ -40,7 +40,10 @@ jobs:
       - run: pnpm format:check
       - run: pnpm --filter @efp/contracts build
       - run: pnpm typecheck
-      - run: pnpm test
+
+      - name: Unit and integration tests (real Postgres + Redis)
+        run: pnpm test
+
       - name: Migrations are in sync with the schema
         working-directory: apps/api
         run: |
@@ -51,4 +54,22 @@ jobs:
             git status --porcelain drizzle
             exit 1
           fi
-      - run: pnpm build
+
+      - name: Build
+        run: pnpm --filter @efp/api build
+
+      - name: End-to-end tests (built API + built web app + Chromium)
+        env:
+          CI: 'true'
+          PGPASSWORD: efp
+        run: |
+          psql -h localhost -U efp -d efp_test -c 'CREATE DATABASE efp_e2e'
+          pnpm --filter @efp/web exec playwright install --with-deps chromium
+          pnpm --filter @efp/web test:e2e
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: apps/web/test-results
+          retention-days: 7

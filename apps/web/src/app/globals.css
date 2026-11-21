@@ -1,0 +1,53 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens. Dark, high-contrast esports look; one accent (pitch lime) used sparingly
+ * for primary actions and live state. Use logical properties (ms-/me-/ps-/pe-/start-/end-)
+ * everywhere so layouts mirror correctly in RTL.
+ */
+@theme {
+  --font-sans: 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, sans-serif;
+
+  --color-bg: oklch(0.16 0.02 260);
+  --color-surface: oklch(0.2 0.025 260);
+  --color-surface-2: oklch(0.24 0.03 260);
+  --color-line: oklch(0.32 0.03 260);
+  --color-ink: oklch(0.97 0.005 260);
+  --color-ink-muted: oklch(0.75 0.02 260);
+  --color-accent: oklch(0.88 0.2 128);
+  --color-accent-ink: oklch(0.2 0.05 128);
+  --color-danger: oklch(0.7 0.19 25);
+  --color-success: oklch(0.78 0.16 155);
+  --color-warning: oklch(0.83 0.15 80);
+
+  --radius-card: 1rem;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    background: var(--color-bg);
+    color: var(--color-ink);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    min-height: 100dvh;
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    background:
+      radial-gradient(60rem 30rem at 50% -10%, oklch(0.88 0.2 128 / 0.08), transparent 70%),
+      var(--color-bg);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  /* Latin input values (emails, usernames) stay left-to-right inside RTL forms. */
+  input[type='email'],
+  input[dir='ltr'] {
+    text-align: start;
+  }
+}

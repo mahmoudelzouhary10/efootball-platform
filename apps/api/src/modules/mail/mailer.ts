@@ -1,3 +1,4 @@
+import { appendFile } from 'node:fs/promises';
 import { Logger } from '@nestjs/common';
 import nodemailer, { Transporter } from 'nodemailer';
 
@@ -34,6 +35,17 @@ export class LogMailer extends Mailer {
 
   async send(message: MailMessage): Promise<void> {
     this.logger.log(`To: ${message.to}\nSubject: ${message.subject}\n\n${message.text}`);
+  }
+}
+
+/** End-to-end tests only: appends each message as a JSON line. Refused in production by config. */
+export class FileMailer extends Mailer {
+  constructor(private readonly file: string) {
+    super();
+  }
+
+  async send(message: MailMessage): Promise<void> {
+    await appendFile(this.file, `${JSON.stringify(message)}\n`);
   }
 }
 

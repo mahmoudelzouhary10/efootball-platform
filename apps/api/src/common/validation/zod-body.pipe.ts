@@ -12,8 +12,26 @@ export class ZodPipe<T> implements PipeTransform<unknown, T> {
     const errors: Record<string, string[]> = {};
     for (const issue of result.error.issues) {
       const key = issue.path.length ? issue.path.join('.') : '_root';
-      (errors[key] ??= []).push(issue.message);
+      (errors[key] ??= []).push(reasonOf(issue));
     }
     throw AppError.validation(errors);
+  }
+}
+
+/**
+ * Stable, translatable reason keys instead of Zod's English messages.
+ * Schemas set custom keys (e.g. "username_reserved"); built-in checks are mapped by issue code.
+ */
+function reasonOf(issue: { code: string; message: string }): string {
+  if (/^[a-z][a-z_]*$/.test(issue.message)) return issue.message;
+  switch (issue.code) {
+    case 'too_small':
+      return 'too_short';
+    case 'too_big':
+      return 'too_long';
+    case 'unrecognized_keys':
+      return 'unknown_field';
+    default:
+      return 'invalid';
   }
 }
