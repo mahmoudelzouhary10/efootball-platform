@@ -101,7 +101,7 @@ export const TOURNAMENT = {
   ],
   bracket: {
     semis: [
-      { id: 'sf1', home: 'NILE', away: 'GST', games: [3, 2] as [number, number], status: 'live' as MatchStatus, minute: "71'" },
+      { id: 'sf1', home: 'NILE', away: 'GST', games: [2, 1] as [number, number], status: 'live' as MatchStatus, minute: "71'" },
       { id: 'sf2', home: 'CEG', away: 'ATL', games: [3, 1] as [number, number], status: 'finished' as MatchStatus },
     ],
     final: { id: 'f', home: 'CEG', away: null as string | null, status: 'scheduled' as MatchStatus, time: '2026-12-06T19:00:00Z' },
@@ -109,7 +109,7 @@ export const TOURNAMENT = {
 };
 
 export const MATCHES: PMatch[] = [
-  { id: 'sf1', home: 'NILE', away: 'GST', games: [3, 2], score: [11, 8], status: 'live', minute: "71'", time: '2026-11-21T19:00:00Z', round: { ar: 'نصف النهائي', en: 'Semi-final' } },
+  { id: 'sf1', home: 'NILE', away: 'GST', games: [2, 1], score: [11, 8], status: 'live', minute: "71'", time: '2026-11-21T19:00:00Z', round: { ar: 'نصف النهائي', en: 'Semi-final' } },
   { id: 'sf2', home: 'CEG', away: 'ATL', games: [3, 1], score: [12, 6], status: 'finished', time: '2026-11-20T19:00:00Z', round: { ar: 'نصف النهائي', en: 'Semi-final' } },
   { id: 'g6', home: 'NILE', away: 'BGD', games: [5, 0], score: [17, 4], status: 'finished', time: '2026-11-18T18:00:00Z', round: { ar: 'الجولة 3', en: 'Matchday 3' } },
   { id: 'g7', home: 'GST', away: 'DSW', games: [3, 2], score: [10, 9], status: 'finished', time: '2026-11-18T20:00:00Z', round: { ar: 'الجولة 3', en: 'Matchday 3' } },

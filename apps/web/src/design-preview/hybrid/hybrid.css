@@ -1,0 +1,165 @@
+/*
+ * Hybrid direction — "Clan Arena" unified identity. Scoped under .hy.
+ *
+ * Three surfaces, one system:
+ *   stage  (navy)  — competition and identity: heroes, live, brackets, player cards
+ *   sheet  (paper) — information: tables, stats, fixtures, admin workflows
+ *   card   (metal) — players only; tier frame carries meaning
+ * Broadcast slant is reserved for live/score elements. Signal red = live, final, destructive only.
+ */
+.hy {
+  --hy-night: #0a1330;
+  --hy-night-2: #0f1b40;
+  --hy-night-3: #162656;
+  --hy-line: rgb(255 255 255 / 0.1);
+  --hy-mute: #9eabca;
+
+  --hy-paper: #ffffff;
+  --hy-mist: #eef2f7;
+  --hy-ink: #0c1628;
+  --hy-ink-2: #51607b;
+  --hy-rule: #dfe5ee;
+
+  --hy-signal: #e5141c;
+  --hy-pitch: #0d8a5c;
+  --hy-pitch-bright: #2fd58f;
+  --hy-gold: #d9a521;
+  --hy-sky: #6cbcff;
+
+  --hy-slant: -12deg;
+  --hy-cut: 16px;
+
+  background: var(--hy-night);
+  color: #fff;
+  font-family: 'Archivo', 'Alexandria', system-ui, sans-serif;
+  min-height: 100dvh;
+  overflow-x: clip;
+}
+[dir='rtl'] .hy {
+  --hy-slant: 12deg;
+  font-family: 'Alexandria', 'Archivo', system-ui, sans-serif;
+}
+
+/* Type. Latin display is condensed sports type; Arabic display is Alexandria heavy, set larger-leaded. */
+.hy-display {
+  font-family: 'Barlow Condensed', 'Alexandria', sans-serif;
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: 0.005em;
+}
+[dir='rtl'] .hy-display {
+  font-family: 'Alexandria', 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+.hy-head {
+  font-family: 'Barlow Condensed', 'Alexandria', sans-serif;
+  font-weight: 700;
+  line-height: 1.05;
+}
+[dir='rtl'] .hy-head {
+  font-family: 'Alexandria', 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  line-height: 1.35;
+}
+/* Every number on the platform: scores, stats, ratings, codes. Always Latin, always tabular. */
+.hy-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* Broadcast slant — only for live/score elements. */
+.hy-slant {
+  transform: skewX(var(--hy-slant));
+}
+.hy-unslant {
+  transform: skewX(calc(var(--hy-slant) * -1));
+}
+
+/* Stage texture: faint pitch markings (centre circle + halfway line), not neon. */
+.hy-pitchlines {
+  background-image:
+    radial-gradient(circle at 50% 50%, transparent 0 139px, rgb(255 255 255 / 0.05) 140px 142px, transparent 143px),
+    linear-gradient(90deg, transparent calc(50% - 1px), rgb(255 255 255 / 0.05) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px));
+}
+.hy-floodlight {
+  background:
+    radial-gradient(55% 70% at 15% 0%, rgb(108 188 255 / 0.16), transparent 70%),
+    radial-gradient(45% 60% at 100% 100%, rgb(255 255 255 / 0.05), transparent 70%);
+}
+[dir='rtl'] .hy-floodlight {
+  background:
+    radial-gradient(55% 70% at 85% 0%, rgb(108 188 255 / 0.16), transparent 70%),
+    radial-gradient(45% 60% at 0% 100%, rgb(255 255 255 / 0.05), transparent 70%);
+}
+
+/* Player card: cut corners (top-end, bottom-start) that follow reading direction. */
+.hy-cut {
+  clip-path: polygon(0 0, calc(100% - var(--hy-cut)) 0, 100% var(--hy-cut), 100% 100%, var(--hy-cut) 100%, 0 calc(100% - var(--hy-cut)));
+}
+[dir='rtl'] .hy-cut {
+  clip-path: polygon(var(--hy-cut) 0, 100% 0, 100% calc(100% - var(--hy-cut)), calc(100% - var(--hy-cut)) 100%, 0 100%, 0 var(--hy-cut));
+}
+.hy-gold {
+  background: linear-gradient(140deg, #f6dc8a, #c8921a 45%, #fbe7a6 70%, #a9760f);
+}
+.hy-silver {
+  background: linear-gradient(140deg, #f1f4f8, #a7b1c0 45%, #ffffff 70%, #8792a3);
+}
+.hy-bronze {
+  background: linear-gradient(140deg, #f0b88a, #a85d2a 45%, #f3c49c 70%, #87471c);
+}
+.hy-hex {
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+}
+
+@keyframes hy-ticker {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.hy-ticker-track {
+  animation: hy-ticker 45s linear infinite;
+}
+@keyframes hy-ticker-rtl {
+  to {
+    transform: translateX(50%);
+  }
+}
+[dir='rtl'] .hy-ticker-track {
+  animation-name: hy-ticker-rtl;
+}
+@keyframes hy-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+.hy-pulse {
+  animation: hy-pulse 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hy-ticker-track,
+  .hy-pulse {
+    animation: none;
+  }
+}
+
+.hy :where(.grid) > * {
+  min-width: 0;
+}
+.hy :focus-visible {
+  outline: 2px solid var(--hy-sky);
+  outline-offset: 2px;
+}
+
+/* Numbers are isolated LTR runs; keep block-level ones aligned to the reading start in RTL.
+   Layered so utilities like text-center still win. */
+@layer components {
+  [dir='rtl'] .hy-num {
+    text-align: right;
+  }
+}
