@@ -1,0 +1,167 @@
+/*
+ * MATCHNIGHT — editorial by day, broadcast by night. Scoped under .mn.
+ * Day (chalk): pages that are read. Night: anything live.
+ * One signature angle (12°) — cuts, wipes, slanted score slabs. No other decoration.
+ */
+.mn {
+  --mn-chalk: #f3f4f0;
+  --mn-chalk-2: #e7e9e3;
+  --mn-ink: #0b0f14;
+  --mn-ink-2: #59616e;
+  --mn-rule: #cfd3cb;
+  --mn-night: #08111f;
+  --mn-night-2: #0f1b2f;
+  --mn-night-line: rgb(255 255 255 / 0.12);
+  --mn-night-mute: #93a0b8;
+  --mn-signal: #e5141c;
+  --mn-pitch: #0d8a5c;
+  --mn-gold: #c99a1d;
+  --mn-angle: 12deg;
+  --mn-slant: -12deg;
+
+  background: var(--mn-chalk);
+  color: var(--mn-ink);
+  font-family: 'Archivo', 'Alexandria', system-ui, sans-serif;
+  min-height: 100dvh;
+  overflow-x: clip;
+}
+[dir='rtl'] .mn {
+  --mn-slant: 12deg;
+  font-family: 'Alexandria', 'Archivo', system-ui, sans-serif;
+}
+.mn-night {
+  background: var(--mn-night);
+  color: #fff;
+}
+
+/* Display: condensed sports grotesk; Arabic gets its own heavy, taller-leaded setting. */
+.mn-d {
+  font-family: 'Barlow Condensed', 'Alexandria', sans-serif;
+  font-weight: 800;
+  line-height: 0.86;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+[dir='rtl'] .mn-d {
+  font-family: 'Alexandria', 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+.mn-h {
+  font-family: 'Barlow Condensed', 'Alexandria', sans-serif;
+  font-weight: 700;
+  line-height: 1;
+}
+[dir='rtl'] .mn-h {
+  font-family: 'Alexandria', 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.mn-n {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  line-height: 0.85;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+@layer components {
+  [dir='rtl'] .mn-n {
+    text-align: right;
+  }
+}
+
+.mn-slant {
+  transform: skewX(var(--mn-slant));
+}
+.mn-unslant {
+  transform: skewX(calc(var(--mn-slant) * -1));
+}
+
+/* The split field: home colour | night | away colour, hard 12° edges. Direction-aware. */
+.mn-split {
+  background: linear-gradient(
+    calc(90deg + var(--mn-angle)),
+    var(--home) 0 34%,
+    var(--mn-night) 34% 66%,
+    var(--away) 66% 100%
+  );
+}
+[dir='rtl'] .mn-split {
+  background: linear-gradient(
+    calc(270deg - var(--mn-angle)),
+    var(--home) 0 34%,
+    var(--mn-night) 34% 66%,
+    var(--away) 66% 100%
+  );
+}
+@media (max-width: 767px) {
+  .mn-split,
+  [dir='rtl'] .mn-split {
+    background: linear-gradient(
+      calc(180deg - var(--mn-angle) / 2),
+      var(--home) 0 30%,
+      var(--mn-night) 30% 70%,
+      var(--away) 70% 100%
+    );
+  }
+}
+
+/* Thin team-colour bar with a 12° cut, used in standings rows. */
+.mn-kit {
+  clip-path: polygon(30% 0, 100% 0, 70% 100%, 0 100%);
+}
+
+/* Cut-corner metal frame (player card). */
+.mn-cut {
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+}
+[dir='rtl'] .mn-cut {
+  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+}
+.mn-gold {
+  background: linear-gradient(140deg, #f6dc8a, #c8921a 45%, #fbe7a6 70%, #a9760f);
+}
+
+/* The only motion: a 12° wipe when the live frame enters. */
+@keyframes mn-wipe {
+  from {
+    clip-path: polygon(0 0, 0 0, -20% 100%, -20% 100%);
+  }
+  to {
+    clip-path: polygon(0 0, 120% 0, 100% 100%, -20% 100%);
+  }
+}
+.mn-wipe {
+  animation: mn-wipe 700ms cubic-bezier(0.7, 0, 0.2, 1) both;
+}
+@keyframes mn-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+.mn-pulse {
+  animation: mn-pulse 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mn-wipe,
+  .mn-pulse {
+    animation: none;
+  }
+}
+
+.mn :where(.grid) > * {
+  min-width: 0;
+}
+.mn :focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 3px;
+}
+.mn-scroll {
+  scrollbar-width: none;
+}
+.mn-scroll::-webkit-scrollbar {
+  display: none;
+}
