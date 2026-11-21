@@ -17,6 +17,8 @@ const envSchema = z.object({
   SMTP_URL: z.string().optional(),
   MAIL_FROM: z.string().default('eFootball Platform <no-reply@localhost>'),
   HIBP_ENABLED: bool.default(false),
+  /** Directory for uploaded images (LocalDiskStorage). Mount a persistent volume in production. */
+  MEDIA_DIR: z.string().default('var/media'),
 });
 
 export type AppConfig = z.infer<typeof envSchema> & {

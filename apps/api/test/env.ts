@@ -9,6 +9,7 @@ export const TEST_ENV = {
   COOKIE_SECURE: 'false',
   MAIL_TRANSPORT: 'log',
   HIBP_ENABLED: 'false',
+  MEDIA_DIR: '/tmp/efp-test-media',
 } as const;
 
 export function applyTestEnv(): void {

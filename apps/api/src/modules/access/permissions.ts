@@ -6,6 +6,8 @@ import type { PlatformRole } from '../../db/schema';
  * staff) are separate policies in their own modules; they are not roles.
  */
 export const Permission = {
+  /** Open the admin area (overview, queues). Each queue also needs its own review permission. */
+  ADMIN_ACCESS: 'admin.access',
   AUDIT_LOG_READ: 'audit_log.read',
   ROLE_GRANT: 'role.grant',
   USER_DISABLE: 'user.disable',
@@ -20,6 +22,7 @@ export type Permission = (typeof Permission)[keyof typeof Permission];
 export const ROLE_PERMISSIONS: Record<PlatformRole, readonly Permission[]> = {
   admin: Object.values(Permission),
   moderator: [
+    Permission.ADMIN_ACCESS,
     Permission.CLAN_APPLICATION_REVIEW,
     Permission.ORGANIZER_APPLICATION_REVIEW,
     Permission.DISPUTE_ESCALATION_RESOLVE,

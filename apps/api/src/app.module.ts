@@ -14,6 +14,9 @@ import { HealthController } from './modules/health/health.controller';
 import { AuthGuard } from './modules/identity/auth.guard';
 import { IdentityModule } from './modules/identity/identity.module';
 import { MailModule } from './modules/mail/mail.module';
+import { ClansModule } from './modules/clans/clans.module';
+import { MediaModule } from './modules/media/media.module';
+import { PlayersModule } from './modules/players/players.module';
 import { Global } from '@nestjs/common';
 
 /** Cross-cutting providers available to every module. */
@@ -34,6 +37,9 @@ class CoreModule {}
     AuditModule,
     IdentityModule,
     AccessModule,
+    MediaModule,
+    PlayersModule,
+    ClansModule,
   ],
   controllers: [HealthController],
   providers: [

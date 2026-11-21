@@ -68,7 +68,7 @@ export async function createHarness(): Promise<Harness> {
     clock,
     async reset() {
       await db.execute(
-        sql`TRUNCATE users, sessions, auth_tokens, user_roles, audit_logs RESTART IDENTITY CASCADE`,
+        sql`TRUNCATE users, sessions, auth_tokens, user_roles, audit_logs, media, player_profiles, clans, clan_applications, clan_memberships, clan_invitations, clan_join_requests RESTART IDENTITY CASCADE`,
       );
       await redis.flushdb();
       mailer.clear();
