@@ -33,7 +33,7 @@ export function ForgotPasswordForm() {
     return (
       <div className="flex flex-col gap-4">
         <Alert tone="success">{t('sent')}</Alert>
-        <Link href="/login" className="text-sm text-accent underline-offset-4 hover:underline">
+        <Link href="/login" className="text-sm text-accent underline underline-offset-4">
           {t('back')}
         </Link>
       </div>
@@ -58,7 +58,7 @@ export function ForgotPasswordForm() {
       </Button>
       <Link
         href="/login"
-        className="text-sm text-ink-muted underline-offset-4 hover:text-ink hover:underline"
+        className="text-sm text-ink-muted underline underline-offset-4 hover:text-ink"
       >
         {t('back')}
       </Link>

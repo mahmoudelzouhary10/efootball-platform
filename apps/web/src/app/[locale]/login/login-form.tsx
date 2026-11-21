@@ -25,7 +25,7 @@ export function LoginForm() {
         identifier: String(form.get('identifier') ?? ''),
         password: String(form.get('password') ?? ''),
       });
-      router.replace('/account');
+      router.replace('/dashboard');
       router.refresh();
     } catch (err) {
       setError(errorText.message(err));
@@ -61,13 +61,13 @@ export function LoginForm() {
       <div className="flex flex-wrap justify-between gap-2 text-sm">
         <Link
           href="/forgot-password"
-          className="text-ink-muted underline-offset-4 hover:text-ink hover:underline"
+          className="text-ink-muted underline underline-offset-4 hover:text-ink"
         >
           {t('forgot')}
         </Link>
         <span className="text-ink-muted">
           {t('noAccount')}{' '}
-          <Link href="/register" className="text-accent underline-offset-4 hover:underline">
+          <Link href="/register" className="text-accent underline underline-offset-4">
             {tRegister('title')}
           </Link>
         </span>

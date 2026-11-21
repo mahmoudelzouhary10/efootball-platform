@@ -73,3 +73,47 @@ jobs:
           name: playwright-traces
           path: apps/web/test-results
           retention-days: 7
+
+  # Proves the documented local setup works: docker compose services, .env.example,
+  # migrations against the compose database, the API booting, and email reaching Mailpit.
+  docker-dev-env:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Start postgres, redis and mailpit from docker-compose.yml
+        run: docker compose up -d --wait
+
+      - run: pnpm install --frozen-lockfile
+      - run: cp apps/api/.env.example apps/api/.env
+      - run: pnpm --filter @efp/contracts build
+      - name: Migrate the compose database (README step)
+        run: pnpm --filter @efp/api db:migrate:dev
+      - run: pnpm --filter @efp/api build
+
+      - name: API boots against compose services and sends email to Mailpit
+        working-directory: apps/api
+        run: |
+          node dist/main.js > /tmp/api.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf localhost:4000/api/v1/health && break; sleep 1; done
+          curl -sf localhost:4000/api/v1/health
+          curl -sf -X POST localhost:4000/api/v1/auth/register -H 'Content-Type: application/json' \
+            -d '{"email":"docker.check@example.com","username":"docker_check","password":"quiet river under stars"}' > /dev/null
+          for i in $(seq 1 10); do
+            n=$(curl -sf localhost:8025/api/v1/messages | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>console.log(JSON.parse(d).messages_count ?? JSON.parse(d).total ?? 0))")
+            [ "$n" -ge 1 ] && echo "Mailpit received $n message(s)" && exit 0
+            sleep 1
+          done
+          cat /tmp/api.log; echo "::error::No email reached Mailpit"; exit 1
+
+      - name: Integration tests against the compose test database (init script)
+        run: pnpm --filter @efp/api test
+
+      - if: always()
+        run: docker compose logs --no-color | tail -n 100

@@ -3,8 +3,9 @@
 Competitive platform for the eFootball Mobile community — players, clans, organizers, tournaments
 and leagues. Arabic first.
 
-**Status:** Phase 1 (Foundation) — accounts, authentication, access control, audit log, Arabic/English
-web shell. See [`docs/architecture.md`](docs/architecture.md) and [`CLAUDE.md`](CLAUDE.md).
+**Status:** Phase 2 (Players & Clans) — accounts and auth, player profiles, clan applications with admin
+review, clan membership and management, Arabic-first design system. See [`docs/architecture.md`](docs/architecture.md),
+[`docs/design-system.md`](docs/design-system.md) and [`CLAUDE.md`](CLAUDE.md).
 
 ## Run locally
 

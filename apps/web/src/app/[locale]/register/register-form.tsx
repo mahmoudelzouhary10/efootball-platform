@@ -29,7 +29,7 @@ export function RegisterForm() {
         username: String(form.get('username') ?? ''),
         password: String(form.get('password') ?? ''),
       });
-      router.replace('/account');
+      router.replace('/dashboard');
       router.refresh();
     } catch (err) {
       const fields = errorText.fields(err);
@@ -88,7 +88,7 @@ export function RegisterForm() {
       </Button>
       <p className="text-sm text-ink-muted">
         {t('haveAccount')}{' '}
-        <Link href="/login" className="text-accent underline-offset-4 hover:underline">
+        <Link href="/login" className="text-accent underline underline-offset-4">
           {tLogin('title')}
         </Link>
       </p>

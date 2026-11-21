@@ -23,6 +23,7 @@ export const E2E = {
       COOKIE_SECURE: 'false',
       MAIL_TRANSPORT: 'file',
       MAIL_FILE: this.mailFile,
+      MEDIA_DIR: path.resolve(__dirname, '../.e2e-media'),
     };
   },
 };

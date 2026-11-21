@@ -1,17 +1,16 @@
-import '@fontsource/ibm-plex-sans-arabic/400.css';
-import '@fontsource/ibm-plex-sans-arabic/500.css';
-import '@fontsource/ibm-plex-sans-arabic/700.css';
+import '../fonts.css';
 import '../globals.css';
 import type { Metadata, Viewport } from 'next';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { preload } from 'react-dom';
 import { SiteHeader } from '@/components/site-header';
 import { directionOf, routing } from '@/i18n/routing';
 import { getCurrentUser } from '@/lib/session';
 
-export const viewport: Viewport = { themeColor: '#0f131c', width: 'device-width', initialScale: 1 };
+export const viewport: Viewport = { themeColor: '#0e1420', width: 'device-width', initialScale: 1 };
 
 export async function generateMetadata({
   params,
@@ -36,6 +35,15 @@ export default async function LocaleLayout({
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
+
+  // Preload the faces that render the first headline and body text in this locale.
+  const subset = locale === 'ar' ? 'arabic' : 'latin';
+  for (const file of [
+    `readex-pro-${subset}-700-normal`,
+    `ibm-plex-sans-arabic-${subset}-400-normal`,
+  ]) {
+    preload(`/fonts/${file}.woff2`, { as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' });
+  }
 
   const user = await getCurrentUser();
   const t = await getTranslations({ locale, namespace: 'nav' });

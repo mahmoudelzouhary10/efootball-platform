@@ -52,14 +52,22 @@ async function register(page: Page, user: ReturnType<typeof uniqueUser>) {
   await page.getByLabel('اسم المستخدم').fill(user.username);
   await page.getByLabel('كلمة المرور').fill(user.password);
   await page.getByRole('button', { name: 'إنشاء الحساب' }).click();
-  await expect(page).toHaveURL(/\/account$/);
+  await expect(page).toHaveURL(/\/dashboard$/);
+}
+
+async function logout(page: Page) {
+  await page.goto('/account');
+  await page.getByRole('button', { name: 'تسجيل الخروج', exact: true }).click();
+  await expect(page).toHaveURL(/\/login$/);
 }
 
 test('Arabic is the default, right-to-left, and fits a phone screen', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('ساحتك التنافسية تبدأ هنا');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'ساحة الكلانات العربية في إي فوتبول موبايل',
+  );
   await expectNoHorizontalScroll(page);
 
   await page.getByRole('link', { name: 'English' }).click();
@@ -71,8 +79,8 @@ test('register, verify email, log out, log back in with the username', async ({ 
   const user = uniqueUser('reg');
   await register(page, user);
 
-  await expect(page.getByText(user.username).first()).toBeVisible();
-  await expect(page.getByText('غير مؤكَّد')).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(`أهلًا ${user.username}`);
+  await expect(page.getByText(/بريدك الإلكتروني لتتمكن/).first()).toBeVisible();
   await expectNoHorizontalScroll(page);
 
   await page.goto(linkFromMail(user.email, '/verify-email').replace(E2E.webUrl, ''));
@@ -80,22 +88,21 @@ test('register, verify email, log out, log back in with the username', async ({ 
   await page.getByRole('link', { name: 'متابعة' }).click();
   await expect(page.getByText('مؤكَّد', { exact: true })).toBeVisible();
 
-  await page.getByRole('button', { name: 'تسجيل الخروج', exact: true }).click();
-  await expect(page).toHaveURL(/\/login$/);
+  await logout(page);
 
-  await page.goto('/account');
+  await page.goto('/dashboard');
   await expect(page).toHaveURL(/\/login$/);
 
   await page.getByLabel('البريد الإلكتروني أو اسم المستخدم').fill(user.username.toUpperCase());
   await page.getByLabel('كلمة المرور').fill(user.password);
   await page.getByRole('button', { name: 'دخول' }).click();
-  await expect(page).toHaveURL(/\/account$/);
+  await expect(page).toHaveURL(/\/dashboard$/);
 });
 
 test('shows field errors from the server next to the right input', async ({ page }) => {
   const user = uniqueUser('dup');
   await register(page, user);
-  await page.getByRole('button', { name: 'تسجيل الخروج', exact: true }).click();
+  await logout(page);
 
   await page.goto('/register');
   await page.getByLabel('البريد الإلكتروني').fill(`other_${user.email}`);
@@ -120,7 +127,7 @@ test('wrong password shows a generic error', async ({ page }) => {
 test('forgot password → reset link → new password works, old one does not', async ({ page }) => {
   const user = uniqueUser('rst');
   await register(page, user);
-  await page.getByRole('button', { name: 'تسجيل الخروج', exact: true }).click();
+  await logout(page);
 
   await page.goto('/forgot-password');
   await page.getByLabel('البريد الإلكتروني').fill(user.email);
@@ -141,7 +148,7 @@ test('forgot password → reset link → new password works, old one does not', 
 
   await page.getByLabel('كلمة المرور').fill(newPassword);
   await page.getByRole('button', { name: 'دخول' }).click();
-  await expect(page).toHaveURL(/\/account$/);
+  await expect(page).toHaveURL(/\/dashboard$/);
 });
 
 test('session cookie is not readable from JavaScript', async ({ page, context }) => {

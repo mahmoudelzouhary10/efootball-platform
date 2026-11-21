@@ -1,26 +1,82 @@
 @import 'tailwindcss';
 
 /*
- * Design tokens. Dark, high-contrast esports look; one accent (pitch lime) used sparingly
- * for primary actions and live state. Use logical properties (ms-/me-/ps-/pe-/start-/end-)
- * everywhere so layouts mirror correctly in RTL.
+ * Design tokens — "Floodlit night match".
+ *
+ * Palette: a deep navy night (not black), floodlight-white text, trophy gold for primary
+ * actions and honours, pitch green only for success/live, card red only for danger.
+ * Type: Readex Pro (display, numbers, tags) + IBM Plex Sans Arabic (body). Both cover Arabic
+ * and Latin, so AR and EN share one typographic voice.
+ * Layout uses logical properties (ms-/me-/ps-/pe-/start-/end-) so RTL and LTR mirror exactly.
  */
 @theme {
+  /* Typography */
   --font-sans: 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Readex Pro', 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, sans-serif;
 
-  --color-bg: oklch(0.16 0.02 260);
-  --color-surface: oklch(0.2 0.025 260);
-  --color-surface-2: oklch(0.24 0.03 260);
-  --color-line: oklch(0.32 0.03 260);
-  --color-ink: oklch(0.97 0.005 260);
-  --color-ink-muted: oklch(0.75 0.02 260);
-  --color-accent: oklch(0.88 0.2 128);
-  --color-accent-ink: oklch(0.2 0.05 128);
-  --color-danger: oklch(0.7 0.19 25);
-  --color-success: oklch(0.78 0.16 155);
-  --color-warning: oklch(0.83 0.15 80);
+  /* Type scale (1.25 ratio, 16px base) */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5625rem;
+  --text-2xl: 1.953rem;
+  --text-3xl: 2.441rem;
+  --text-4xl: 3.052rem;
+  --text-5xl: 3.815rem;
 
+  /* Color — base */
+  --color-bg: #0e1420;
+  --color-surface: #151d2c;
+  --color-surface-2: #1c2638;
+  --color-surface-3: #243049;
+  --color-line: #2a3650;
+  --color-line-strong: #3a4866;
+  --color-ink: #f2f4f8;
+  --color-ink-muted: #9aa6bd;
+  --color-ink-faint: #8693ab; /* ≥ 4.5:1 on every surface */
+
+  /* Color — meaning */
+  --color-accent: #e3b85c; /* trophy gold: primary action, leader, honours */
+  --color-accent-strong: #f0cd7d;
+  --color-accent-ink: #1d1606;
+  --color-success: #3dbe8b; /* pitch green */
+  --color-danger: #e5484d; /* card red */
+  --color-warning: #f0a44b; /* card amber */
+  --color-info: #7ab0ff;
+
+  /* Radius: crest > card > control > chip */
   --radius-card: 1rem;
+  --radius-control: 0.625rem;
+
+  /* Elevation: light from above (floodlights), never a grey drop shadow */
+  --shadow-raise: inset 0 1px 0 0 rgb(255 255 255 / 0.05), 0 10px 30px -12px rgb(3 6 12 / 0.8);
+  --shadow-glow: 0 0 0 1px rgb(227 184 92 / 0.35), 0 8px 30px -8px rgb(227 184 92 / 0.35);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-rise: rise 600ms var(--ease-out) both;
+  --animate-fade: fade 300ms var(--ease-out) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @layer base {
@@ -29,15 +85,31 @@
     background: var(--color-bg);
     color: var(--color-ink);
     -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
     min-height: 100dvh;
     font-family: var(--font-sans);
-    line-height: 1.6;
+    line-height: 1.65;
+    /* Floodlight wash from the top of the stand. */
     background:
-      radial-gradient(60rem 30rem at 50% -10%, oklch(0.88 0.2 128 / 0.08), transparent 70%),
+      radial-gradient(70rem 28rem at 50% -12rem, rgb(122 176 255 / 0.09), transparent 70%),
       var(--color-bg);
+    background-attachment: fixed;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
   }
 
   :focus-visible {
@@ -45,9 +117,44 @@
     outline-offset: 2px;
   }
 
-  /* Latin input values (emails, usernames) stay left-to-right inside RTL forms. */
+  ::selection {
+    background: rgb(227 184 92 / 0.35);
+  }
+
   input[type='email'],
   input[dir='ltr'] {
     text-align: start;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 1ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 1ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Kit-lettering for clan tags: wide tracking, tabular figures. */
+  .kit-tag {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    font-variant-numeric: tabular-nums;
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Shield silhouette used by clan crests. */
+  .crest-shape {
+    clip-path: polygon(50% 0%, 100% 12%, 100% 62%, 50% 100%, 0% 62%, 0% 12%);
   }
 }

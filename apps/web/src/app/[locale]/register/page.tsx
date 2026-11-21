@@ -12,7 +12,7 @@ export async function generateMetadata() {
 export default async function RegisterPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  if (await getCurrentUser()) redirect({ href: '/account', locale });
+  if (await getCurrentUser()) redirect({ href: '/dashboard', locale });
   const t = await getTranslations('register');
   return (
     <AuthShell title={t('title')}>
