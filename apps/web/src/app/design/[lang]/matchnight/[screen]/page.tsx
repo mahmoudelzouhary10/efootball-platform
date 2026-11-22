@@ -2,11 +2,11 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Lang } from '@/design-preview/data';
 import {
-  type BugState,
   MATCHNIGHT,
   MATCHNIGHT_SCREENS,
   type MatchnightScreen,
-} from '@/design-preview/matchnight/screens';
+} from '@/design-preview/matchnight/registry';
+import type { BugState } from '@/design-preview/matchnight/screens';
 
 export function generateStaticParams() {
   return ['ar', 'en'].flatMap((lang) => MATCHNIGHT_SCREENS.map((screen) => ({ lang, screen })));
@@ -23,6 +23,7 @@ export default async function Page({
     state?: string;
     bug?: string;
     menu?: string;
+    long?: string;
   }>;
 }) {
   const [{ lang, screen }, q] = await Promise.all([params, searchParams]);
@@ -37,7 +38,7 @@ export default async function Page({
   return (
     <>
       <div data-font={font}>
-        <View lang={lang} state={state} bug={bug} menu={q.menu === '1'} />
+        <View lang={lang} state={state} bug={bug} menu={q.menu === '1'} long={q.long === '1'} />
       </div>
       {!clean && (
         <div

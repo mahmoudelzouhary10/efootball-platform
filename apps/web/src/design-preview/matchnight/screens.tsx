@@ -1,28 +1,47 @@
 /* DESIGN PREVIEW ONLY — MATCHNIGHT: editorial by day (chalk), broadcast by night (live). */
-import { ArrowLeft, ArrowRight, Menu, Trophy, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Menu, Trophy, X } from 'lucide-react';
 import type { CSSProperties, ReactNode } from 'react';
 import { C, fmtDate } from '../copy';
-import { CLANS, clan, LIVE_GAMES, type Lang, MATCHES, ROSTER, TOURNAMENT, winRate } from '../data';
+import { CLANS, type Lang, MATCHES, ROSTER, winRate } from '../data';
+import {
+  clan,
+  CONFIRMED_COUNT,
+  CUP,
+  GROUPS,
+  LIVE,
+  LIVE_GAMES,
+  type LiveGame,
+  NEXT,
+  OFFICIAL_GOALS,
+  ROUNDS,
+  type Tie,
+  tieWinner,
+} from './data';
 import { Emblem } from '../emblem';
 import { OPPONENTS, TOP_PLAYERS } from '../hybrid/extra';
 import { RevealWhenOffscreen } from './reveal';
 import type { PPlayer } from '../data';
 
-type P = { lang: Lang };
+export type P = { lang: Lang };
 /** What the persistent bug shows. Derived from real match state: a live match the user can follow,
  *  else the user's own next match within 24h, else nothing. */
 export type BugState = 'live' | 'upcoming' | 'none';
-export type ViewProps = P & { state?: 'live' | 'upcoming'; bug?: BugState; menu?: boolean };
-type T = { ar: string; en: string };
-const t = (n: T, lang: Lang) => n[lang];
-const LIVE = MATCHES.find((m) => m.id === 'sf1')!;
+export type ViewProps = P & {
+  state?: 'live' | 'upcoming';
+  bug?: BugState;
+  menu?: boolean;
+  /** QA: render the live hero with the two longest Arabic clan names in the data. */
+  long?: boolean;
+};
+export type T = { ar: string; en: string };
+export const t = (n: T, lang: Lang) => n[lang];
 const pts = (r: { w: number; d: number }) => r.w * 3 + r.d;
-const pname = (u: string, lang: Lang) =>
+export const pname = (u: string, lang: Lang) =>
   ROSTER.find((r) => r.username === u)?.name[lang] ?? OPPONENTS[u]?.[lang] ?? u;
-const Arrow = ({ lang, className = 'size-5' }: P & { className?: string }) =>
+export const Arrow = ({ lang, className = 'size-5' }: P & { className?: string }) =>
   lang === 'ar' ? <ArrowLeft className={className} /> : <ArrowRight className={className} />;
 
-const M = {
+export const M = {
   nav: {
     matches: { ar: 'المباريات', en: 'Matches' },
     competitions: { ar: 'البطولات', en: 'Competitions' },
@@ -52,7 +71,33 @@ const M = {
   rankFirst: { ar: 'في الصدارة', en: 'Top of the rankings' },
   fullRank: { ar: 'التصنيف كاملًا', en: 'Full rankings' },
   awaiting: { ar: 'بانتظار النتيجة', en: 'Awaiting result' },
-  pending: { ar: 'تُلعب', en: 'Playing' },
+  official: {
+    ar: 'النتيجة الرسمية — مباريات فردية مؤكدة',
+    en: 'Official score — confirmed games won',
+  },
+  gameShort: { ar: 'مباراة', en: 'Game' },
+  stConfirmed: { ar: 'نتيجة مؤكدة من الطرفين', en: 'Confirmed by both sides' },
+  stSubmitted: {
+    ar: 'نتيجة مُرسلة — بانتظار التأكيد (غير رسمية)',
+    en: 'Submitted — awaiting confirmation (not official)',
+  },
+  stAwaiting: { ar: 'بانتظار إرسال النتيجة', en: 'Awaiting result' },
+  stAwaitingShort: { ar: 'بانتظار النتيجة', en: 'Awaiting result' },
+  stWaitingFor: { ar: 'بانتظار تأكيد', en: 'Awaiting' },
+  submittedBy: { ar: 'أرسلها', en: 'Submitted by' },
+  notCounted: { ar: 'لا تُحتسب بعد', en: 'not counted yet' },
+  inPlayNow: { ar: 'تُلعب الآن', en: 'in play' },
+  officialNow: { ar: 'النتيجة الرسمية للمواجهة:', en: 'Official clan score:' },
+  deciderWon: { ar: 'بالحاسمة', en: 'Decider' },
+  deciderNote: {
+    ar: 'تعادل في المباريات، حُسم بمباراة حاسمة بين القائدين',
+    en: "Level on games, won in a leaders' decider",
+  },
+  levelDecider: { ar: 'تعادل — حُسمت بالحاسمة', en: 'Level — settled by decider' },
+  officialNote: {
+    ar: 'النتيجة الرسمية تحسب المباريات المؤكدة فقط.',
+    en: 'The official score counts confirmed games only.',
+  },
   progress: { ar: 'مواجهات مؤكدة', en: 'games confirmed' },
   vsNow: {
     ar: 'تُلعب الآن — تظهر النتيجة بعد تأكيد الطرفين',
@@ -97,7 +142,7 @@ const M = {
     ar: 'تعادل في الإقصائيات؟ مباراة حاسمة بين القائدين.',
     en: 'Level in a knockout? A decider between the two leaders.',
   },
-  aggregate: { ar: 'مجموع الأهداف', en: 'Aggregate goals' },
+  aggregate: { ar: 'مجموع الأهداف في المباريات المؤكدة', en: 'Goals in confirmed games' },
   confirmed: { ar: 'نتيجة مؤكدة من الطرفين', en: 'Confirmed by both sides' },
   leads: { ar: 'يتقدم', en: 'lead' },
   level: { ar: 'تعادل', en: 'level' },
@@ -123,7 +168,7 @@ const M = {
 // Primitives
 // ════════════════════════════════════════════════════════════════════════════
 
-function Crest({
+export function Crest({
   tag,
   className = 'size-10',
   shape = 'shield' as 'shield' | 'hex',
@@ -145,7 +190,7 @@ function Crest({
 }
 
 /** Direction-following score: each number next to its own side. */
-function Score({
+export function Score({
   v,
   className = '',
   dash = true,
@@ -170,7 +215,7 @@ function Score({
   );
 }
 
-function Live({ lang, className = '' }: P & { className?: string }) {
+export function Live({ lang, className = '' }: P & { className?: string }) {
   return (
     <span
       className={`mn-slant inline-flex bg-[var(--mn-signal)] px-2.5 py-0.5 text-white ${className}`}
@@ -184,19 +229,18 @@ function Live({ lang, className = '' }: P & { className?: string }) {
 }
 
 /** Games in the series, one slot each; filled with the winner's colour. */
-function gameWinner(g: (typeof LIVE_GAMES)[number]) {
-  if (!g.score || g.state !== 'done') return null;
+function gameWinner(g: LiveGame) {
+  if (!g.score || g.status !== 'confirmed') return null;
   return g.score[0] > g.score[1] ? 'h' : g.score[0] < g.score[1] ? 'a' : 'd';
 }
 
-const wrap = 'mx-auto w-full max-w-[90rem] px-5 sm:px-8 lg:px-12';
+export const wrap = 'mx-auto w-full max-w-[90rem] px-5 sm:px-8 lg:px-12';
 
 // ════════════════════════════════════════════════════════════════════════════
 // Chrome: masthead + live scorebug (no sidebar, no tab bar)
 // ════════════════════════════════════════════════════════════════════════════
 
-const DONE = LIVE_GAMES.filter((g) => g.state === 'done').length;
-const NEXT = MATCHES.find((m) => m.id === 'l1')!;
+const DONE = CONFIRMED_COUNT;
 
 /** Live bug: series score + how many individual games are confirmed. No invented match clock. */
 function LiveBug({ lang, className = '' }: P & { className?: string }) {
@@ -229,7 +273,7 @@ function LiveBug({ lang, className = '' }: P & { className?: string }) {
 type NavKey = 'matches' | 'competitions' | 'clans' | 'players' | 'home';
 const NAV_KEYS = ['matches', 'competitions', 'clans', 'players'] as const;
 
-function Masthead({
+export function Masthead({
   lang,
   night = false,
   active,
@@ -283,7 +327,7 @@ function Masthead({
 }
 
 /** Full-screen menu. Every destination, including Admin for staff, in large type. */
-function MenuOverlay({ lang }: P) {
+export function MenuOverlay({ lang }: P) {
   return (
     <div
       role="dialog"
@@ -343,7 +387,7 @@ function MenuOverlay({ lang }: P) {
  * Pages reserve its height (pb) so it never covers content; it is hidden while the menu is open
  * and on the match centre itself, which has its own sticky score bar.
  */
-function MobileBug({ lang, state }: P & { state: BugState }) {
+export function MobileBug({ lang, state }: P & { state: BugState }) {
   if (state === 'none') return null;
   if (state === 'upcoming') {
     return (
@@ -392,10 +436,10 @@ function MobileBug({ lang, state }: P & { state: BugState }) {
 }
 
 /** Bottom padding a page reserves for the bug, so the last content is never covered. */
-const bugPad = (s: BugState) =>
+export const bugPad = (s: BugState) =>
   s === 'none' ? '' : 'pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0';
 
-function Footer({ lang }: P) {
+export function Footer({ lang }: P) {
   return (
     <footer className="bg-[var(--mn-ink)] py-14 text-white">
       <div className={`${wrap} flex flex-wrap items-end justify-between gap-6`}>
@@ -412,17 +456,118 @@ function Footer({ lang }: P) {
 // The night frame — shared by Home (opening) and Match Centre (hero)
 // ════════════════════════════════════════════════════════════════════════════
 
+/** Hero name size from its real length, so long Arabic names stay inside the frame on mobile. */
+function fitName(name: string, lang: Lang) {
+  const n = [...name].length;
+  if (lang === 'ar') {
+    if (n > 22) return 'text-[2.1rem] !leading-[1.35] md:text-5xl xl:text-6xl';
+    if (n > 12) return 'text-4xl md:text-6xl xl:text-7xl';
+    return 'text-5xl md:text-7xl xl:text-8xl';
+  }
+  if (n > 18) return 'text-5xl md:text-7xl xl:text-[6.5rem]';
+  return 'text-6xl md:text-8xl xl:text-[8.5rem]';
+}
+
+/**
+ * Series tracker — one slot per individual game, in three visually distinct states:
+ *   confirmed  → solid winner colour, score, check  (counts toward the official score)
+ *   submitted  → hatched, score in outline, "awaiting <clan> confirmation" (does NOT count)
+ *   awaiting   → empty dashed slot, "awaiting result"
+ */
+function SeriesTracker({ lang, compact = false }: P & { compact?: boolean }) {
+  const h = clan(LIVE.home);
+  const a = clan(LIVE.away);
+  return (
+    <div>
+      <ol
+        className="grid grid-cols-5 gap-1.5 bg-[var(--mn-night)] p-1.5 md:gap-2 md:p-2"
+        aria-label={t(M.log, lang)}
+      >
+        {LIVE_GAMES.map((g) => {
+          const w = gameWinner(g);
+          const bg =
+            w === 'h' ? h.colors[0] : w === 'a' ? a.colors[0] : w === 'd' ? '#4b5568' : undefined;
+          const other = g.submittedBy === LIVE.home ? a : h;
+          return (
+            <li
+              key={g.n}
+              className={`relative flex min-h-[4.5rem] flex-col px-2 py-2 md:min-h-[6rem] md:px-3 md:py-2.5 ${
+                g.status === 'submitted'
+                  ? 'mn-hatch outline outline-2 -outline-offset-2 outline-[var(--mn-amber)]'
+                  : g.status === 'awaiting'
+                    ? 'border-2 border-dashed border-white/35'
+                    : ''
+              }`}
+              style={bg ? { background: bg } : undefined}
+            >
+              <span className="flex items-center justify-between text-[11px] text-white/75 md:text-xs">
+                <span>
+                  {t(M.gameShort, lang)} <span className="mn-n">{g.n}</span>
+                </span>
+                {g.status === 'confirmed' && (
+                  <Check className="size-3.5" aria-label={t(M.stConfirmed, lang)} />
+                )}
+              </span>
+              {g.status === 'awaiting' ? (
+                <span className="mt-auto text-xs font-semibold leading-tight md:text-sm">
+                  {t(M.stAwaitingShort, lang)}
+                </span>
+              ) : (
+                <Score
+                  v={g.score!}
+                  className={`mt-auto text-2xl md:text-4xl ${g.status === 'submitted' ? 'text-[var(--mn-amber)]' : ''}`}
+                />
+              )}
+              {!compact && (
+                <span className="mt-1 hidden truncate text-[11px] text-white/85 md:block">
+                  {g.status === 'submitted'
+                    ? `${t(M.stWaitingFor, lang)} ${other.name[lang]}`
+                    : `${pname(g.home, lang).split(' ')[0]} · ${pname(g.away, lang).split(' ')[0]}`}
+                </span>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+      <ResultLegend lang={lang} />
+    </div>
+  );
+}
+
+function ResultLegend({ lang, ink = false }: P & { ink?: boolean }) {
+  const txt = ink ? 'text-[var(--mn-ink-2)]' : 'text-white/75';
+  return (
+    <ul className={`mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs md:text-sm ${txt}`}>
+      <li className="flex items-center gap-1.5">
+        <span className={`inline-block size-3 ${ink ? 'bg-[var(--mn-ink)]' : 'bg-white'}`} />{' '}
+        {t(M.stConfirmed, lang)}
+      </li>
+      <li className="flex items-center gap-1.5">
+        <span
+          className={`mn-hatch inline-block size-3 outline outline-2 outline-[var(--mn-amber)] ${ink ? '[--hatch:var(--mn-ink)]' : ''}`}
+        />{' '}
+        {t(M.stSubmitted, lang)}
+      </li>
+      <li className="flex items-center gap-1.5">
+        <span
+          className={`inline-block size-3 border border-dashed ${ink ? 'border-[var(--mn-ink)]' : 'border-white'}`}
+        />{' '}
+        {t(M.stAwaiting, lang)}
+      </li>
+    </ul>
+  );
+}
+
 function NightFrame({
   lang,
   tall = false,
   state = 'live',
-}: P & { tall?: boolean; state?: 'live' | 'upcoming' }) {
+  pair,
+}: P & { tall?: boolean; state?: 'live' | 'upcoming'; pair?: [string, string] }) {
   const m = state === 'live' ? LIVE : NEXT;
-  const h = clan(m.home);
-  const a = clan(m.away);
+  const h = clan(pair?.[0] ?? m.home);
+  const a = clan(pair?.[1] ?? m.away);
   const style = { '--home': h.colors[0], '--away': a.colors[0] } as CSSProperties;
-  const nameCls =
-    lang === 'ar' ? 'text-5xl md:text-7xl xl:text-8xl' : 'text-6xl md:text-8xl xl:text-[8.5rem]';
   return (
     <section
       id={state === 'live' ? 'mn-live-hero' : undefined}
@@ -444,19 +589,17 @@ function NightFrame({
       />
 
       <div
-        className={`${wrap} relative flex flex-col ${tall ? 'min-h-[82vh] py-10 md:py-14' : 'min-h-[78vh] py-8 md:py-12'}`}
+        className={`${wrap} relative flex flex-col ${tall ? 'md:min-h-[82vh] py-6 md:py-14' : 'md:min-h-[78vh] py-6 md:py-12'}`}
       >
         <p className="flex flex-wrap items-center gap-3 text-sm font-semibold text-white/85 md:text-base">
           {state === 'live' && <Live lang={lang} />}
-          {state === 'live'
-            ? `${t(TOURNAMENT.name, lang)} — ${t(m.round, lang)}`
-            : t(m.round, lang)}
+          {state === 'live' ? `${t(CUP.name, lang)} — ${t(m.round, lang)}` : t(m.round, lang)}
         </p>
 
-        <div className="grid flex-1 grid-cols-1 items-center gap-6 py-8 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:gap-4">
+        <div className="grid flex-1 grid-cols-1 items-center gap-3 py-5 md:gap-6 md:py-8 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:gap-4">
           <div className="self-start md:pt-6">
-            <Crest tag={h.tag} className="mb-4 size-16 md:size-24" />
-            <h2 className={`mn-d ${nameCls}`}>{h.name[lang]}</h2>
+            <Crest tag={h.tag} className="mb-3 size-12 md:mb-4 md:size-24" />
+            <h2 className={`mn-d ${fitName(h.name[lang], lang)}`}>{h.name[lang]}</h2>
           </div>
           {state === 'live' ? (
             <div className="flex flex-col items-center">
@@ -465,60 +608,21 @@ function NightFrame({
                 dash="bar"
                 className="mn-big text-[9rem] leading-none md:text-[13rem] xl:text-[17rem]"
               />
-              <p className="-mt-2 text-sm font-semibold uppercase tracking-wide text-white/70 rtl:normal-case">
-                {t(M.games, lang)}
+              <p className="mt-2 text-center text-sm font-semibold uppercase tracking-wide text-white/80 rtl:normal-case">
+                {t(M.official, lang)}
               </p>
             </div>
           ) : (
             <Countdown lang={lang} />
           )}
           <div className="self-end text-end md:pb-6">
-            <Crest tag={a.tag} className="mb-4 ms-auto size-16 md:size-24" />
-            <h2 className={`mn-d ${nameCls}`}>{a.name[lang]}</h2>
+            <Crest tag={a.tag} className="mb-3 ms-auto size-12 md:mb-4 md:size-24" />
+            <h2 className={`mn-d ${fitName(a.name[lang], lang)}`}>{a.name[lang]}</h2>
           </div>
         </div>
 
         {state === 'live' ? (
-          /* Series tracker: one slot per individual game, filled with the winner's colour once confirmed. */
-          <div
-            className="grid grid-cols-5 gap-1.5 bg-[var(--mn-night)] p-1.5 md:gap-2 md:p-2"
-            role="list"
-            aria-label={t(M.log, lang)}
-          >
-            {LIVE_GAMES.map((g, i) => {
-              const w = gameWinner(g);
-              const bg =
-                w === 'h'
-                  ? h.colors[0]
-                  : w === 'a'
-                    ? a.colors[0]
-                    : w === 'd'
-                      ? '#4b5568'
-                      : undefined;
-              const pending = g.state !== 'done';
-              return (
-                <div
-                  key={i}
-                  role="listitem"
-                  className={`relative min-h-[4.25rem] px-2 py-2 md:min-h-[5.5rem] md:px-4 md:py-3 ${pending ? 'border-2 border-dashed border-white/40' : ''}`}
-                  style={bg ? { background: bg } : undefined}
-                >
-                  <p className="mn-n text-xs text-white/70 md:text-sm">{i + 1}</p>
-                  {pending ? (
-                    <p className="mt-1 text-xs font-semibold leading-tight md:text-sm">
-                      <span className="md:hidden">{t(M.pending, lang)}</span>
-                      <span className="hidden md:inline">{t(M.awaiting, lang)}</span>
-                    </p>
-                  ) : (
-                    <Score v={g.score!} className="text-2xl md:text-4xl" />
-                  )}
-                  <p className="mt-1 hidden truncate text-xs text-white/80 md:block">
-                    {pname(g.home, lang).split(' ')[0]} · {pname(g.away, lang).split(' ')[0]}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
+          <SeriesTracker lang={lang} />
         ) : (
           <p className="border-t border-white/20 pt-4 text-white/80">{t(M.pairings, lang)}</p>
         )}
@@ -528,7 +632,7 @@ function NightFrame({
 }
 
 /** Countdown to the scheduled start (preview fixes "now" so screenshots are stable). */
-const PREVIEW_NOW = Date.parse('2026-11-22T06:30:00Z');
+export const PREVIEW_NOW = Date.parse('2026-11-22T06:30:00Z');
 function Countdown({ lang }: P) {
   const ms = Date.parse(NEXT.time) - PREVIEW_NOW;
   const d = Math.floor(ms / 864e5);
@@ -571,7 +675,7 @@ function Countdown({ lang }: P) {
 // 1. HOME — "tonight's programme"
 // ════════════════════════════════════════════════════════════════════════════
 
-export function MatchnightHome({ lang, bug = 'live', menu = false }: ViewProps) {
+export function MatchnightHome({ lang, bug = 'live', menu = false, long = false }: ViewProps) {
   const table = [...CLANS].sort((a, b) => pts(b.record) - pts(a.record)).slice(0, 6);
   const yesterday = MATCHES.filter((m) => m.status === 'finished');
   const ranked = [...TOP_PLAYERS]
@@ -588,7 +692,7 @@ export function MatchnightHome({ lang, bug = 'live', menu = false }: ViewProps) 
   return (
     <div className={bugPad(bug)}>
       <Masthead lang={lang} active="home" />
-      <NightFrame lang={lang} />
+      <NightFrame lang={lang} pair={long ? ['GPY', 'NST'] : undefined} />
       <div className="bg-[var(--mn-night)] text-white">
         <a className={`${wrap} flex items-center justify-between py-5 text-lg font-semibold`}>
           {t(M.enter, lang)}
@@ -634,7 +738,7 @@ export function MatchnightHome({ lang, bug = 'live', menu = false }: ViewProps) 
           className={`${wrap} grid gap-12 py-16 md:py-24 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]`}
         >
           <div>
-            <p className="font-semibold text-[var(--mn-ink-2)]">{t(TOURNAMENT.name, lang)}</p>
+            <p className="font-semibold text-[var(--mn-ink-2)]">{t(CUP.name, lang)}</p>
             <h2
               className={`mn-d mt-3 ${lang === 'ar' ? 'text-5xl md:text-7xl' : 'text-6xl md:text-8xl'}`}
             >
@@ -643,7 +747,7 @@ export function MatchnightHome({ lang, bug = 'live', menu = false }: ViewProps) 
             <p className="mt-8 flex items-end gap-4">
               <span className="mn-n text-[7rem] md:text-[10rem]">06</span>
               <span className="pb-3 text-xl font-semibold">
-                {fmtDate(TOURNAMENT.bracket.final.time, lang, { month: 'long' })}
+                {fmtDate(CUP.finalTime, lang, { month: 'long' })}
               </span>
             </p>
           </div>
@@ -750,7 +854,7 @@ export function MatchnightHome({ lang, bug = 'live', menu = false }: ViewProps) 
         <ol>
           {(
             [
-              [TOURNAMENT.name, M.semis, 'live'],
+              [CUP.name, M.semis, 'live'],
               [{ ar: 'دوري النيل الأسبوعي', en: 'Nile Weekly League' }, M.open, 'open'],
               [{ ar: 'كأس الخليج السوبر', en: 'Gulf Super Cup' }, M.soon, 'soon'],
             ] as const
@@ -761,7 +865,7 @@ export function MatchnightHome({ lang, bug = 'live', menu = false }: ViewProps) 
             >
               <div className="min-w-0">
                 <p
-                  className={`mn-d truncate ${lang === 'ar' ? 'text-3xl md:text-5xl' : 'text-4xl md:text-6xl'}`}
+                  className={`mn-d ${lang === 'ar' ? 'text-3xl md:text-5xl' : 'text-4xl md:text-6xl'}`}
                 >
                   {name[lang]}
                 </p>
@@ -787,8 +891,8 @@ export function MatchnightHome({ lang, bug = 'live', menu = false }: ViewProps) 
 }
 
 function MiniBracket({ lang }: P) {
-  const [sf1, sf2] = TOURNAMENT.bracket.semis;
-  const tie = (m: typeof sf1) => (
+  const [sf1, sf2] = ROUNDS[1]!.ties;
+  const tie = (m: Tie | undefined) => (
     <div
       className={`${m!.status === 'live' ? 'bg-[var(--mn-night)] text-white' : 'border-t-[3px] border-[var(--mn-ink)]'} px-4 py-3`}
     >
@@ -799,8 +903,8 @@ function MiniBracket({ lang }: P) {
         {m!.status === 'live' && <Live lang={lang} />}
       </div>
       {[
-        [m!.home, m!.games[0]],
-        [m!.away, m!.games[1]],
+        [m!.home, m!.games![0]],
+        [m!.away, m!.games![1]],
       ].map(([tag, g], i) => (
         <div key={i} className="flex items-center gap-3 py-1">
           <Crest tag={tag as string} className="size-7" />
@@ -841,7 +945,7 @@ function MiniBracket({ lang }: P) {
   );
 }
 
-function Standings({
+export function Standings({
   lang,
   rows,
   cut,
@@ -906,7 +1010,7 @@ function Standings({
  * Player identity mark. A real uploaded image always wins; otherwise a typographic monogram:
  * the name's first letter, set huge in the clan's colour, with the position as a tag.
  */
-function Monogram({
+export function Monogram({
   p,
   tag,
   lang,
@@ -941,7 +1045,12 @@ function Monogram({
   );
 }
 
-function PlayerCard({ lang, p, tag, image }: P & { p: PPlayer; tag: string; image?: string }) {
+export function PlayerCard({
+  lang,
+  p,
+  tag,
+  image,
+}: P & { p: PPlayer; tag: string; image?: string }) {
   const c = clan(tag);
   return (
     <div className="mn-cut mn-gold mx-auto w-60 p-[3px] md:w-72">
@@ -966,8 +1075,6 @@ function PlayerCard({ lang, p, tag, image }: P & { p: PPlayer; tag: string; imag
 // 2. MATCH CENTRE — the broadcast (live state)
 // ════════════════════════════════════════════════════════════════════════════
 
-const LOG_TIMES = ['19:18', '19:41', '20:03', '20:27'];
-
 function MiniMono({ name, color, ink }: { name: string; color: string; ink: string }) {
   return (
     <span
@@ -980,7 +1087,7 @@ function MiniMono({ name, color, ink }: { name: string; color: string; ink: stri
   );
 }
 
-export function MatchnightLive({ lang, state = 'live' }: ViewProps) {
+export function MatchnightLive({ lang, state = 'live', long = false }: ViewProps) {
   const m = state === 'live' ? LIVE : NEXT;
   const h = clan(m.home);
   const a = clan(m.away);
@@ -1009,7 +1116,7 @@ export function MatchnightLive({ lang, state = 'live' }: ViewProps) {
         </span>
         <span className="w-1.5" style={{ background: a.colors[0] }} />
       </div>
-      <NightFrame lang={lang} tall state={state} />
+      <NightFrame lang={lang} tall state={state} pair={long ? ['GPY', 'NST'] : undefined} />
 
       {state === 'live' ? (
         <>
@@ -1019,8 +1126,12 @@ export function MatchnightLive({ lang, state = 'live' }: ViewProps) {
               <div className="mb-8 flex flex-wrap items-center gap-3">
                 <Live lang={lang} />
                 <h2 className="mn-h text-2xl md:text-3xl">
-                  {t(M.current, lang)} <span className="mn-n">5</span>
+                  {t(M.gameShort, lang)} <span className="mn-n">{cur.n}</span> —{' '}
+                  {t(M.inPlayNow, lang)}
                 </h2>
+                <span className="border-2 border-dashed border-white/50 px-2.5 py-0.5 text-sm font-semibold">
+                  {t(M.stAwaiting, lang)}
+                </span>
               </div>
               <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:gap-10">
                 <div className="flex items-center gap-4">
@@ -1056,7 +1167,13 @@ export function MatchnightLive({ lang, state = 'live' }: ViewProps) {
                 </div>
               </div>
               <div className="mt-10 flex flex-col gap-2 border-t border-[var(--mn-night-line)] pt-6">
-                <p className="text-xl font-semibold">{t(M.needs, lang)}</p>
+                <p className="text-lg font-semibold md:text-xl">
+                  {t(M.officialNow, lang)}{' '}
+                  <span className="bg-white px-1.5 text-[var(--mn-ink)]">
+                    <Score v={LIVE.games!} className="text-xl" />
+                  </span>{' '}
+                  · {t(M.officialNote, lang)}
+                </p>
                 <p className="text-[var(--mn-night-mute)]">{t(M.vsNow, lang)}</p>
               </div>
             </div>
@@ -1068,46 +1185,83 @@ export function MatchnightLive({ lang, state = 'live' }: ViewProps) {
             <div>
               <h2 className="mn-d mb-8 text-4xl md:text-5xl">{t(M.log, lang)}</h2>
               <ol className="flex flex-col">
-                {LIVE_GAMES.filter((g) => g.state === 'done').map((g, i) => {
+                {LIVE_GAMES.map((g) => {
                   const w = gameWinner(g);
                   if (w === 'h') hs++;
                   if (w === 'a') aw++;
                   const running: [number, number] = [hs, aw];
                   const col = w === 'h' ? h.colors[0] : w === 'a' ? a.colors[0] : '#4b5568';
+                  const by = g.submittedBy ? clan(g.submittedBy) : null;
+                  const waitingFor = g.submittedBy === LIVE.home ? a : h;
                   return (
                     <li
-                      key={i}
-                      className="grid grid-cols-[3.5rem_minmax(0,1fr)_auto] items-center gap-4 border-t border-[var(--mn-night-line)] py-5"
+                      key={g.n}
+                      className={`grid grid-cols-[3.5rem_minmax(0,1fr)_auto] items-center gap-3 border-t border-[var(--mn-night-line)] py-5 md:gap-4 ${g.status === 'submitted' ? 'mn-hatch [--hatch:rgb(255_255_255/0.06)]' : ''}`}
                     >
                       <span className="mn-n text-lg text-[var(--mn-night-mute)]">
-                        {LOG_TIMES[i]}
+                        {g.at ?? '—'}
                       </span>
                       <div className="min-w-0">
-                        <p className="mn-h flex flex-wrap items-baseline gap-x-2 text-xl md:text-2xl">
-                          <span className={w === 'h' ? '' : 'text-white/55'}>
-                            {pname(g.home, lang)}
-                          </span>
-                          <Score v={g.score!} className="text-2xl md:text-3xl" />
-                          <span className={w === 'a' ? '' : 'text-white/55'}>
+                        {g.status === 'awaiting' ? (
+                          <p className="mn-h text-xl text-white/70 md:text-2xl">
+                            {pname(g.home, lang)}{' '}
+                            <span className="text-white/40">{t(C.vs, lang)}</span>{' '}
                             {pname(g.away, lang)}
+                          </p>
+                        ) : (
+                          <p className="mn-h flex flex-wrap items-baseline gap-x-2 text-xl md:text-2xl">
+                            <span
+                              className={
+                                w === 'h' || g.status === 'submitted' ? '' : 'text-white/55'
+                              }
+                            >
+                              {pname(g.home, lang)}
+                            </span>
+                            <Score
+                              v={g.score!}
+                              className={`text-2xl md:text-3xl ${g.status === 'submitted' ? 'text-[var(--mn-amber)]' : ''}`}
+                            />
+                            <span className={w === 'a' ? '' : 'text-white/55'}>
+                              {pname(g.away, lang)}
+                            </span>
+                          </p>
+                        )}
+                        <p className="mt-1 flex flex-wrap items-center gap-x-2 text-sm">
+                          <span className="text-[var(--mn-night-mute)]">
+                            {t(M.game, lang)} <span className="mn-n">{g.n}</span> ·
                           </span>
-                        </p>
-                        <p className="mt-1 text-sm text-[var(--mn-night-mute)]">
-                          {t(M.game, lang)} <span className="mn-n">{i + 1}</span> ·{' '}
-                          {t(M.confirmed, lang)}
+                          {g.status === 'confirmed' && (
+                            <span className="flex items-center gap-1 text-white/85">
+                              <Check className="size-3.5" /> {t(M.stConfirmed, lang)}
+                            </span>
+                          )}
+                          {g.status === 'submitted' && (
+                            <span className="font-semibold text-[var(--mn-amber)]">
+                              {t(M.submittedBy, lang)} {by!.name[lang]} — {t(M.stWaitingFor, lang)}{' '}
+                              {waitingFor.name[lang]} · {t(M.notCounted, lang)}
+                            </span>
+                          )}
+                          {g.status === 'awaiting' && (
+                            <span className="text-white/70">{t(M.stAwaiting, lang)}</span>
+                          )}
                         </p>
                       </div>
-                      <span className="flex items-center gap-2">
-                        <span className="h-8 w-2" style={{ background: col }} />
-                        <Score v={running} className="text-3xl" />
-                      </span>
+                      {g.status === 'confirmed' ? (
+                        <span className="flex items-center gap-2" aria-label={t(M.official, lang)}>
+                          <span className="h-8 w-2" style={{ background: col }} />
+                          <Score v={running} className="text-3xl" />
+                        </span>
+                      ) : (
+                        <span className="text-xs text-white/40">—</span>
+                      )}
                     </li>
                   );
                 })}
               </ol>
               <p className="mt-6 text-[var(--mn-night-mute)]">
-                {t(M.aggregate, lang)} <Score v={LIVE.score!} className="text-xl text-white" />
+                {t(M.aggregate, lang)} <Score v={OFFICIAL_GOALS} className="text-xl text-white" />
               </p>
+              <ResultLegend lang={lang} />
             </div>
             <div>
               <h2 className="mn-d mb-8 text-4xl md:text-5xl">{t(M.rules, lang)}</h2>
@@ -1184,8 +1338,107 @@ export function MatchnightLive({ lang, state = 'live' }: ViewProps) {
 // 3. TOURNAMENT — the poster and the bracket
 // ════════════════════════════════════════════════════════════════════════════
 
+/** Bracket connector: joins the two feeding ties (centred at 25% / 75% of this cell) to this tie. */
+function Joiner() {
+  return (
+    <span aria-hidden>
+      <span className="absolute start-[-3rem] top-1/4 bottom-1/4 w-6 border-y-[3px] border-e-[3px] border-[var(--mn-ink)]" />
+      <span className="absolute start-[-1.5rem] top-1/2 h-[3px] w-6 bg-[var(--mn-ink)]" />
+    </span>
+  );
+}
+
+/** One knockout tie. Winner in ink, loser muted; a decider is stated, never implied. Live ties go to night. */
+function BTie({ lang, tie }: P & { tie: Tie }) {
+  const live = tie.status === 'live';
+  const win = tieWinner(tie);
+  const line = (tag: string, g: number | undefined) => {
+    const isWin = win === tag;
+    const lost = win !== null && !isWin;
+    return (
+      <div className="flex items-center gap-3 py-1.5">
+        <span className="mn-kit h-8 w-3.5 shrink-0" style={{ background: clan(tag).colors[0] }} />
+        <Crest tag={tag} className="size-8" />
+        <span
+          className={`mn-h line-clamp-2 min-w-0 flex-1 leading-tight ${[...clan(tag).name[lang]].length > 16 ? 'text-lg xl:text-xl' : 'text-xl xl:text-2xl'} ${lost ? (live ? 'text-white/55' : 'text-[var(--mn-ink-2)]') : ''}`}
+        >
+          {clan(tag).name[lang]}
+          {isWin && tie.decider && (
+            <span className="ms-2 inline-block bg-[var(--mn-gold)] px-1.5 align-middle font-[Alexandria,Archivo] text-xs font-semibold text-[var(--mn-ink)]">
+              {t(M.deciderWon, lang)}
+            </span>
+          )}
+        </span>
+        <span className={`mn-n text-4xl ${lost ? 'opacity-50' : ''}`}>{g ?? '–'}</span>
+      </div>
+    );
+  };
+  return (
+    <div
+      className={`w-full ${live ? 'border-t-4 border-[var(--mn-signal)] bg-[var(--mn-night)] px-4 py-3 text-white' : 'border-t-[3px] border-[var(--mn-ink)] bg-[var(--mn-chalk)] pt-2'}`}
+    >
+      <div className="mb-1 flex items-center justify-between gap-2 text-xs">
+        <span className={live ? 'text-white/70' : 'text-[var(--mn-ink-2)]'}>
+          {live
+            ? t(M.official, lang)
+            : tie.games && tie.games[0] === tie.games[1]
+              ? t(M.levelDecider, lang)
+              : t(C.finished, lang)}
+        </span>
+        {live && <Live lang={lang} />}
+      </div>
+      {line(tie.home!, tie.games?.[0])}
+      {line(tie.away!, tie.games?.[1])}
+    </div>
+  );
+}
+
+function FinalPoster({ lang }: P) {
+  const f = ROUNDS[2]!.ties[0]!;
+  return (
+    <div className="relative w-full overflow-hidden bg-[var(--mn-ink)] p-6 text-white md:p-7">
+      <div className="mn-gold absolute inset-x-0 top-0 h-2" />
+      <p className="mn-d text-5xl">{t(M.final, lang)}</p>
+      <p className="mt-3 flex items-end gap-3">
+        <span className="mn-n mn-big text-7xl">
+          {fmtDate(CUP.finalTime, lang, { day: '2-digit' })}
+        </span>
+        <span className="pb-2 text-lg">{fmtDate(CUP.finalTime, lang, { month: 'long' })}</span>
+      </p>
+      <div className="mt-5 flex items-center gap-3 border-t border-white/15 pt-4">
+        <Crest tag={f.home!} className="size-10" />
+        <span className="mn-h text-2xl">{clan(f.home!).name[lang]}</span>
+      </div>
+      <div className="mt-3 flex items-center gap-3 text-white/70">
+        <span className="flex -space-x-2 rtl:space-x-reverse">
+          <Crest tag={f.feed![0]} className="size-9" />
+          <Crest tag={f.feed![1]} className="size-9" />
+        </span>
+        <span className="text-sm">
+          {t(M.winnerOf, lang)} {clan(f.feed![0]).name[lang]} / {clan(f.feed![1]).name[lang]}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function ResultLegendTie({ lang }: P) {
+  return (
+    <ul className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-[var(--mn-ink-2)]">
+      <li className="flex items-center gap-1.5">
+        <span className="inline-block size-3 bg-[var(--mn-night)]" /> {t(C.live, lang)}
+      </li>
+      <li className="flex items-center gap-1.5">
+        <span className="inline-block bg-[var(--mn-gold)] px-1 text-[10px] font-semibold text-[var(--mn-ink)]">
+          {t(M.deciderWon, lang)}
+        </span>{' '}
+        {t(M.deciderNote, lang)}
+      </li>
+    </ul>
+  );
+}
+
 export function MatchnightTournament({ lang, bug = 'live', menu = false }: ViewProps) {
-  const [sf1, sf2] = TOURNAMENT.bracket.semis;
   const fixtures = MATCHES.filter((m) => m.id === 'g6' || m.id === 'g7');
   return (
     <div className={bugPad(bug)}>
@@ -1204,7 +1457,7 @@ export function MatchnightTournament({ lang, bug = 'live', menu = false }: ViewP
         >
           <div className="flex flex-wrap items-center gap-3 font-semibold text-white/80">
             <Live lang={lang} />
-            {t(TOURNAMENT.organizer, lang)}
+            {t(CUP.organizer, lang)}
           </div>
           <div>
             <div
@@ -1216,13 +1469,13 @@ export function MatchnightTournament({ lang, bug = 'live', menu = false }: ViewP
             <h1
               className={`mn-d max-w-5xl ${lang === 'ar' ? 'text-6xl md:text-8xl xl:text-9xl' : 'text-7xl md:text-[9rem] xl:text-[11rem]'}`}
             >
-              {t(TOURNAMENT.name, lang)}
+              {t(CUP.name, lang)}
             </h1>
             <p className="mt-4 text-xl text-white/80 md:text-2xl">
-              {t(M.season, lang)} <span className="mn-n">3</span> · {t(TOURNAMENT.dates, lang)} ·{' '}
-              <span className="mn-n">{TOURNAMENT.participants}</span> {t(C.nav.clans, lang)}
+              {t(M.season, lang)} <span className="mn-n">3</span> · {t(CUP.dates, lang)} ·{' '}
+              <span className="mn-n">{CUP.participants}</span> {t(C.nav.clans, lang)}
             </p>
-            <p className="mt-2 max-w-2xl text-white/60">{t(TOURNAMENT.format, lang)}</p>
+            <p className="mt-2 max-w-2xl text-white/60">{t(CUP.format, lang)}</p>
           </div>
         </div>
       </section>
@@ -1241,91 +1494,115 @@ export function MatchnightTournament({ lang, bug = 'live', menu = false }: ViewP
         </div>
       </nav>
 
-      {/* Bracket as the hero: semis → final poster → champion */}
-      <section className={`${wrap} py-14 md:py-20`}>
-        <div className="mn-scroll -mx-5 flex snap-x snap-mandatory gap-6 overflow-x-auto px-5 md:mx-0 md:grid md:grid-cols-[minmax(0,1.1fr)_4rem_minmax(0,1fr)_minmax(0,0.6fr)] md:items-center md:gap-0 md:overflow-visible md:px-0">
-          {/* round: semis */}
-          <div className="flex w-[85vw] shrink-0 snap-start flex-col gap-10 md:w-auto">
-            <p className="text-sm font-semibold text-[var(--mn-ink-2)]">{t(C.tour.semi, lang)}</p>
-            {[sf1!, sf2!].map((m) => {
-              const live = m.status === 'live';
-              return (
-                <div
-                  key={m.id}
-                  className={
-                    live
-                      ? 'mn-wipe bg-[var(--mn-night)] p-5 text-white'
-                      : 'border-t-[3px] border-[var(--mn-ink)] pt-4'
-                  }
-                >
-                  <div className="mb-2 flex items-center justify-between text-sm">
-                    <span className={live ? 'text-white/60' : 'text-[var(--mn-ink-2)]'}>
-                      {live ? '' : t(C.finished, lang)}
-                    </span>
-                    {live && <Live lang={lang} />}
-                  </div>
-                  {(
-                    [
-                      [m.home, m.games[0], m.games[0] > m.games[1]],
-                      [m.away, m.games[1], m.games[1] > m.games[0]],
-                    ] as const
-                  ).map(([tag, g, lead]) => (
-                    <div key={tag} className="flex items-center gap-4 py-1.5">
-                      <span
-                        className="mn-kit h-9 w-4 shrink-0"
-                        style={{ background: clan(tag).colors[0] }}
-                      />
-                      <Crest tag={tag} className="size-9" />
-                      <span
-                        className={`mn-h min-w-0 flex-1 truncate text-2xl md:text-3xl ${lead ? '' : live ? 'text-white/55' : 'text-[var(--mn-ink-2)]'}`}
-                      >
-                        {clan(tag).name[lang]}
-                      </span>
-                      <span className="mn-n text-5xl">{g}</span>
-                    </div>
-                  ))}
-                </div>
-              );
-            })}
+      {/* Bracket — the hero of the page. Full tournament: QF → SF → Final → Champion. */}
+      <section id="bracket" className="scroll-mt-24 border-b-[3px] border-[var(--mn-ink)]">
+        <div className={`${wrap} py-12 md:py-20`}>
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-4 md:mb-12">
+            <h2
+              className={`mn-d ${lang === 'ar' ? 'text-5xl md:text-7xl' : 'text-6xl md:text-8xl'}`}
+            >
+              {t(M.road, lang)}
+            </h2>
+            <ResultLegendTie lang={lang} />
           </div>
-          {/* connector */}
-          <div className="relative hidden h-[70%] md:block" aria-hidden>
-            <div className="absolute inset-y-0 start-0 w-1/2 border-y-[3px] border-e-[3px] border-[var(--mn-ink)]" />
-            <div className="absolute start-1/2 top-1/2 h-[3px] w-1/2 bg-[var(--mn-ink)]" />
-          </div>
-          {/* final poster */}
-          <div className="w-[85vw] shrink-0 snap-start md:w-auto">
-            <p className="mb-4 text-sm font-semibold text-[var(--mn-ink-2)] md:hidden">
-              {t(C.tour.final, lang)}
-            </p>
-            <div className="relative overflow-hidden bg-[var(--mn-ink)] p-6 text-white md:p-8">
-              <div className="mn-gold absolute inset-x-0 top-0 h-2" />
-              <p className="mn-d text-5xl md:text-6xl">{t(M.final, lang)}</p>
-              <p className="mt-4 flex items-end gap-3">
-                <span className="mn-n text-8xl">06</span>
-                <span className="pb-2 text-lg">
-                  {fmtDate(TOURNAMENT.bracket.final.time, lang, { month: 'long' })}
-                </span>
+
+          {/* Desktop: a real bracket with connectors. Logical properties flip it for RTL. */}
+          <div className="hidden grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.55fr)] grid-rows-[auto_repeat(4,minmax(0,1fr))] gap-x-12 gap-y-5 lg:grid">
+            {ROUNDS.map((r, ri) => (
+              <p
+                key={r.key}
+                className="mn-h col-span-1 text-xl text-[var(--mn-ink-2)]"
+                style={{ gridColumn: ri + 1, gridRow: 1 }}
+              >
+                {t(r.name, lang)}
               </p>
-              <div className="mt-6 flex items-center gap-3 border-t border-white/15 pt-5">
-                <Crest tag="CEG" className="size-10" />
-                <span className="mn-h text-2xl">{clan('CEG').name[lang]}</span>
+            ))}
+            <p
+              className="mn-h text-xl text-[var(--mn-ink-2)]"
+              style={{ gridColumn: 4, gridRow: 1 }}
+            >
+              {t(M.champion, lang)}
+            </p>
+            {ROUNDS[0]!.ties.map((tie, i) => (
+              <div
+                key={tie.id}
+                className="flex items-center"
+                style={{ gridColumn: 1, gridRow: i + 2 }}
+              >
+                <BTie lang={lang} tie={tie} />
               </div>
-              <div className="mt-3 flex items-center gap-3 text-white/65">
-                <span className="grid size-10 place-items-center border-2 border-dashed border-white/30 text-lg">
-                  ?
-                </span>
-                <span>
-                  {t(M.winnerOf, lang)} {clan('NILE').name[lang]} / {clan('GST').name[lang]}
-                </span>
+            ))}
+            {ROUNDS[1]!.ties.map((tie, i) => (
+              <div
+                key={tie.id}
+                className="relative flex items-center"
+                style={{ gridColumn: 2, gridRow: `${i * 2 + 2} / span 2` }}
+              >
+                <Joiner />
+                <BTie lang={lang} tie={tie} />
               </div>
+            ))}
+            <div
+              className="relative flex items-center"
+              style={{ gridColumn: 3, gridRow: '2 / span 4' }}
+            >
+              <Joiner />
+              <FinalPoster lang={lang} />
+            </div>
+            <div
+              className="relative flex flex-col items-center justify-center gap-3 text-center"
+              style={{ gridColumn: 4, gridRow: '2 / span 4' }}
+            >
+              <span
+                className="absolute start-[-3rem] top-1/2 h-[3px] w-12 bg-[var(--mn-ink)]"
+                aria-hidden
+              />
+              <Trophy className="size-24 text-[var(--mn-gold)]" strokeWidth={1.25} />
+              <p className="mn-d text-3xl">{t(M.champion, lang)}</p>
+              <p className="text-[var(--mn-ink-2)]">
+                {fmtDate(CUP.finalTime, lang, { day: 'numeric', month: 'long' })}
+              </p>
             </div>
           </div>
-          {/* champion */}
-          <div className="flex w-[60vw] shrink-0 snap-start flex-col items-center justify-center gap-3 md:w-auto">
-            <Trophy className="size-24 text-[var(--mn-gold)] md:size-28" strokeWidth={1.25} />
-            <p className="mn-d text-3xl">{t(M.champion, lang)}</p>
-            <p className="text-[var(--mn-ink-2)]">{t(C.tour.tbd, lang)}</p>
+
+          {/* Mobile/tablet: one round per screen, swiped; round chips jump between them. */}
+          <div className="lg:hidden">
+            <nav
+              className="mn-scroll -mx-5 mb-5 flex gap-2 overflow-x-auto px-5"
+              aria-label={t(C.tour.bracket, lang)}
+            >
+              {ROUNDS.map((r) => (
+                <a
+                  key={r.key}
+                  href={`#round-${r.key}`}
+                  className={`shrink-0 border-2 px-3 py-1.5 text-sm font-semibold ${r.key === 'sf' ? 'border-[var(--mn-ink)] bg-[var(--mn-ink)] text-white' : 'border-[var(--mn-ink)]'}`}
+                >
+                  {t(r.name, lang)}
+                  {r.key === 'sf' && (
+                    <span
+                      className="ms-2 inline-block size-2 rounded-full bg-[var(--mn-signal)]"
+                      aria-label={t(C.live, lang)}
+                    />
+                  )}
+                </a>
+              ))}
+            </nav>
+            <div className="mn-scroll -mx-5 flex snap-x snap-mandatory scroll-px-5 gap-4 overflow-x-auto px-5 pb-2">
+              {ROUNDS.map((r) => (
+                <div
+                  key={r.key}
+                  id={`round-${r.key}`}
+                  className="flex w-[86vw] max-w-md shrink-0 snap-start scroll-mt-40 flex-col gap-4"
+                >
+                  <p className="mn-h text-xl text-[var(--mn-ink-2)]">{t(r.name, lang)}</p>
+                  {r.key === 'f' ? (
+                    <FinalPoster lang={lang} />
+                  ) : (
+                    r.ties.map((tie) => <BTie key={tie.id} lang={lang} tie={tie} />)
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -1333,7 +1610,7 @@ export function MatchnightTournament({ lang, bug = 'live', menu = false }: ViewP
       {/* Groups — broadcast standings */}
       <section className="bg-[var(--mn-chalk-2)]">
         <div className={`${wrap} grid gap-16 py-14 md:py-20 xl:grid-cols-2`}>
-          {TOURNAMENT.groups.map((g) => (
+          {GROUPS.map((g) => (
             <div key={g.name.en}>
               <h2 className="mn-d mb-6 text-4xl md:text-5xl">{g.name[lang]}</h2>
               <Standings
@@ -1387,11 +1664,3 @@ export function MatchnightTournament({ lang, bug = 'live', menu = false }: ViewP
     </div>
   );
 }
-
-export const MATCHNIGHT_SCREENS = ['home', 'live', 'tournament'] as const;
-export type MatchnightScreen = (typeof MATCHNIGHT_SCREENS)[number];
-export const MATCHNIGHT: Record<MatchnightScreen, (p: ViewProps) => ReactNode> = {
-  home: MatchnightHome,
-  live: MatchnightLive,
-  tournament: MatchnightTournament,
-};

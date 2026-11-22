@@ -42,6 +42,8 @@
   --mn-signal: #e5141c;
   --mn-pitch: #0d8a5c;
   --mn-gold: #c99a1d;
+  /* Pending/unconfirmed — used only for submitted results awaiting the other side. */
+  --mn-amber: #ffc857;
   --mn-angle: 12deg;
   --mn-slant: -12deg;
 
@@ -230,4 +232,27 @@
 }
 .mn-scroll::-webkit-scrollbar {
   display: none;
+}
+
+/* Result states. Submitted-but-unconfirmed is hatched and its score is outlined: visibly provisional. */
+.mn-hatch {
+  background-image: repeating-linear-gradient(
+    -58deg,
+    var(--hatch, rgb(255 255 255 / 0.3)) 0 2px,
+    transparent 2px 7px
+  );
+}
+.mn-outline-num {
+  color: transparent;
+  -webkit-text-stroke: 1.5px currentColor;
+}
+.mn-outline-num .mn-n {
+  color: transparent;
+  -webkit-text-stroke: 1.5px #fff;
+}
+.mn-silver {
+  background: linear-gradient(140deg, #f1f4f8, #a7b1c0 45%, #ffffff 70%, #8792a3);
+}
+.mn-bronze {
+  background: linear-gradient(140deg, #f0b88a, #a85d2a 45%, #f3c49c 70%, #87471c);
 }
