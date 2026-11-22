@@ -24,6 +24,7 @@ export default async function Page({
     bug?: string;
     menu?: string;
     long?: string;
+    round?: string;
   }>;
 }) {
   const [{ lang, screen }, q] = await Promise.all([params, searchParams]);
@@ -38,7 +39,14 @@ export default async function Page({
   return (
     <>
       <div data-font={font}>
-        <View lang={lang} state={state} bug={bug} menu={q.menu === '1'} long={q.long === '1'} />
+        <View
+          lang={lang}
+          state={state}
+          bug={bug}
+          menu={q.menu === '1'}
+          long={q.long === '1'}
+          round={q.round === 'qf' || q.round === 'sf' || q.round === 'f' ? q.round : undefined}
+        />
       </div>
       {!clean && (
         <div

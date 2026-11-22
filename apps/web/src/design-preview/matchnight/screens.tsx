@@ -20,6 +20,7 @@ import {
 import { Emblem } from '../emblem';
 import { OPPONENTS, TOP_PLAYERS } from '../hybrid/extra';
 import { RevealWhenOffscreen } from './reveal';
+import { RoundNav } from './round-nav';
 import type { PPlayer } from '../data';
 
 export type P = { lang: Lang };
@@ -32,6 +33,8 @@ export type ViewProps = P & {
   menu?: boolean;
   /** QA: render the live hero with the two longest Arabic clan names in the data. */
   long?: boolean;
+  /** QA: preselect a bracket round on mobile (as if the user had tapped it). */
+  round?: string;
 };
 export type T = { ar: string; en: string };
 export const t = (n: T, lang: Lang) => n[lang];
@@ -88,6 +91,10 @@ export const M = {
   notCounted: { ar: 'لا تُحتسب بعد', en: 'not counted yet' },
   inPlayNow: { ar: 'تُلعب الآن', en: 'in play' },
   officialNow: { ar: 'النتيجة الرسمية للمواجهة:', en: 'Official clan score:' },
+  groupsCut: {
+    ar: 'الأول والثاني يتأهلان إلى ربع النهائي',
+    en: 'Top two go through to the quarter-finals',
+  },
   deciderWon: { ar: 'بالحاسمة', en: 'Decider' },
   deciderNote: {
     ar: 'تعادل في المباريات، حُسم بمباراة حاسمة بين القائدين',
@@ -239,6 +246,15 @@ export const wrap = 'mx-auto w-full max-w-[90rem] px-5 sm:px-8 lg:px-12';
 // ════════════════════════════════════════════════════════════════════════════
 // Chrome: masthead + live scorebug (no sidebar, no tab bar)
 // ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Compact bars (scorebugs) never cut a name with an ellipsis: they show the full name when it fits
+ * the bar, otherwise the clan's official tag — the same short identity used in broadcast bugs.
+ */
+function bugName(tag: string, lang: Lang) {
+  const c = clan(tag);
+  return [...c.name[lang]].length <= 14 ? c.name[lang] : c.tag;
+}
 
 const DONE = CONFIRMED_COUNT;
 
@@ -397,11 +413,11 @@ export function MobileBug({ lang, state }: P & { state: BugState }) {
             {t(M.yourNext, lang)}
           </span>
           <span className="flex flex-1 items-center justify-between gap-2 px-3">
-            <span className="mn-h truncate text-base">{clan(NEXT.home).name[lang]}</span>
+            <span className="mn-h text-base">{bugName(NEXT.home, lang)}</span>
             <span className="mn-n shrink-0 bg-white px-2 text-lg text-[var(--mn-ink)]">
               {fmtDate(NEXT.time, lang, { hour: '2-digit', minute: '2-digit', hour12: false })}
             </span>
-            <span className="mn-h truncate text-base">{clan(NEXT.away).name[lang]}</span>
+            <span className="mn-h text-base">{bugName(NEXT.away, lang)}</span>
           </span>
         </a>
       </div>
@@ -419,11 +435,11 @@ export function MobileBug({ lang, state }: P & { state: BugState }) {
           </span>
           <span className="w-2" style={{ background: clan(LIVE.home).colors[0] }} />
           <span className="flex min-w-0 flex-1 items-center justify-between gap-2 px-3">
-            <span className="mn-h truncate text-base">{clan(LIVE.home).name[lang]}</span>
+            <span className="mn-h text-base">{bugName(LIVE.home, lang)}</span>
             <span className="shrink-0 bg-white px-2 text-[var(--mn-ink)]">
               <Score v={LIVE.games!} className="text-xl" />
             </span>
-            <span className="mn-h truncate text-base">{clan(LIVE.away).name[lang]}</span>
+            <span className="mn-h text-base">{bugName(LIVE.away, lang)}</span>
           </span>
           <span className="w-2" style={{ background: clan(LIVE.away).colors[0] }} />
           <span className="mn-n flex items-center px-3 text-sm text-white/60">
@@ -712,12 +728,12 @@ export function MatchnightHome({ lang, bug = 'live', menu = false, long = false 
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p
-                    className={`mn-h truncate text-2xl ${m.games![0] > m.games![1] ? '' : 'text-[var(--mn-ink-2)]'}`}
+                    className={`mn-h break-words leading-tight text-2xl ${m.games![0] > m.games![1] ? '' : 'text-[var(--mn-ink-2)]'}`}
                   >
                     {clan(m.home).name[lang]}
                   </p>
                   <p
-                    className={`mn-h truncate text-2xl ${m.games![1] > m.games![0] ? '' : 'text-[var(--mn-ink-2)]'}`}
+                    className={`mn-h break-words leading-tight text-2xl ${m.games![1] > m.games![0] ? '' : 'text-[var(--mn-ink-2)]'}`}
                   >
                     {clan(m.away).name[lang]}
                   </p>
@@ -834,7 +850,7 @@ export function MatchnightHome({ lang, bug = 'live', menu = false, long = false 
                   <span className="mn-n text-2xl text-white/50">{i + 2}</span>
                   <span className="flex min-w-0 items-center gap-2.5">
                     <Crest tag={r.clan} className="size-6" />
-                    <span className="mn-h truncate text-xl">{r.p.name[lang]}</span>
+                    <span className="mn-h break-words leading-tight text-xl">{r.p.name[lang]}</span>
                   </span>
                   <span className="mn-n text-2xl">{winRate(r.p.stats)}%</span>
                 </li>
@@ -908,7 +924,7 @@ function MiniBracket({ lang }: P) {
       ].map(([tag, g], i) => (
         <div key={i} className="flex items-center gap-3 py-1">
           <Crest tag={tag as string} className="size-7" />
-          <span className="mn-h min-w-0 flex-1 truncate text-xl">
+          <span className="mn-h min-w-0 flex-1 break-words leading-tight text-xl">
             {clan(tag as string).name[lang]}
           </span>
           <span className="mn-n text-3xl">{g as number}</span>
@@ -981,7 +997,10 @@ export function Standings({
               style={{ background: clan(r.tag).colors[0] }}
             />
             <Crest tag={r.tag} className="size-8 md:size-9" />
-            <span className="mn-h truncate text-lg md:text-3xl">{clan(r.tag).name[lang]}</span>
+            {/* Full clan name, always — it wraps rather than truncates. */}
+            <span className="mn-h min-w-0 break-words text-lg leading-tight md:text-3xl">
+              {clan(r.tag).name[lang]}
+            </span>
           </span>
           <span className="mn-n text-center text-2xl">{r.p}</span>
           <span className="mn-n hidden text-center text-2xl md:block">
@@ -1058,8 +1077,8 @@ export function PlayerCard({
         <Monogram p={p} tag={tag} lang={lang} image={image} className="w-full" />
         <div className="flex items-end justify-between gap-3 p-5">
           <div className="min-w-0">
-            <p className="mn-h truncate text-2xl">{p.name[lang]}</p>
-            <p className="truncate text-sm text-white/60">{c.name[lang]}</p>
+            <p className="mn-h break-words leading-tight text-2xl">{p.name[lang]}</p>
+            <p className="break-words leading-tight text-sm text-white/60">{c.name[lang]}</p>
           </div>
           <div className="text-end">
             <p className="mn-n mn-big text-5xl">{Math.round(winRate(p.stats))}</p>
@@ -1102,7 +1121,7 @@ export function MatchnightLive({ lang, state = 'live', long = false }: ViewProps
       <div className="sticky top-0 z-20 flex h-12 items-stretch border-b border-[var(--mn-night-line)] bg-[var(--mn-night)] md:hidden">
         <span className="w-1.5" style={{ background: h.colors[0] }} />
         <span className="flex min-w-0 flex-1 items-center justify-between gap-2 px-4">
-          <span className="mn-h truncate">{h.name[lang]}</span>
+          <span className="mn-h">{bugName(h.tag, lang)}</span>
           {state === 'live' ? (
             <span className="shrink-0 bg-white px-2 text-[var(--mn-ink)]">
               <Score v={LIVE.games!} className="text-lg" />
@@ -1112,7 +1131,7 @@ export function MatchnightLive({ lang, state = 'live', long = false }: ViewProps
               {fmtDate(NEXT.time, lang, { hour: '2-digit', minute: '2-digit', hour12: false })}
             </span>
           )}
-          <span className="mn-h truncate">{a.name[lang]}</span>
+          <span className="mn-h">{bugName(a.tag, lang)}</span>
         </span>
         <span className="w-1.5" style={{ background: a.colors[0] }} />
       </div>
@@ -1294,7 +1313,9 @@ export function MatchnightLive({ lang, state = 'live', long = false }: ViewProps
                 <span className="flex min-w-0 items-center gap-3">
                   <span className="h-10 w-2 shrink-0" style={{ background: c.colors[0] }} />
                   <Crest tag={c.tag} className="size-9" />
-                  <span className="mn-h truncate text-2xl md:text-3xl">{c.name[lang]}</span>
+                  <span className="mn-h break-words leading-tight text-2xl md:text-3xl">
+                    {c.name[lang]}
+                  </span>
                 </span>
                 <span className="flex items-center gap-5">
                   <span className="mn-n text-2xl">
@@ -1438,7 +1459,7 @@ function ResultLegendTie({ lang }: P) {
   );
 }
 
-export function MatchnightTournament({ lang, bug = 'live', menu = false }: ViewProps) {
+export function MatchnightTournament({ lang, bug = 'live', menu = false, round }: ViewProps) {
   const fixtures = MATCHES.filter((m) => m.id === 'g6' || m.id === 'g7');
   return (
     <div className={bugPad(bug)}>
@@ -1565,34 +1586,20 @@ export function MatchnightTournament({ lang, bug = 'live', menu = false }: ViewP
             </div>
           </div>
 
-          {/* Mobile/tablet: one round per screen, swiped; round chips jump between them. */}
+          {/* Mobile/tablet: one round per screen. Selected round ≠ live round (see RoundNav). */}
           <div className="lg:hidden">
-            <nav
-              className="mn-scroll -mx-5 mb-5 flex gap-2 overflow-x-auto px-5"
-              aria-label={t(C.tour.bracket, lang)}
+            <RoundNav
+              rounds={ROUNDS.map((r) => ({ key: r.key, label: t(r.name, lang) }))}
+              liveKey={ROUNDS.find((r) => r.ties.some((x) => x.status === 'live'))?.key ?? null}
+              liveLabel={t(C.live, lang)}
+              navLabel={t(C.tour.bracket, lang)}
+              initialKey={round}
             >
-              {ROUNDS.map((r) => (
-                <a
-                  key={r.key}
-                  href={`#round-${r.key}`}
-                  className={`shrink-0 border-2 px-3 py-1.5 text-sm font-semibold ${r.key === 'sf' ? 'border-[var(--mn-ink)] bg-[var(--mn-ink)] text-white' : 'border-[var(--mn-ink)]'}`}
-                >
-                  {t(r.name, lang)}
-                  {r.key === 'sf' && (
-                    <span
-                      className="ms-2 inline-block size-2 rounded-full bg-[var(--mn-signal)]"
-                      aria-label={t(C.live, lang)}
-                    />
-                  )}
-                </a>
-              ))}
-            </nav>
-            <div className="mn-scroll -mx-5 flex snap-x snap-mandatory scroll-px-5 gap-4 overflow-x-auto px-5 pb-2">
               {ROUNDS.map((r) => (
                 <div
                   key={r.key}
-                  id={`round-${r.key}`}
-                  className="flex w-[86vw] max-w-md shrink-0 snap-start scroll-mt-40 flex-col gap-4"
+                  data-round={r.key}
+                  className="flex w-[86vw] max-w-md shrink-0 snap-start flex-col gap-4"
                 >
                   <p className="mn-h text-xl text-[var(--mn-ink-2)]">{t(r.name, lang)}</p>
                   {r.key === 'f' ? (
@@ -1602,24 +1609,41 @@ export function MatchnightTournament({ lang, bug = 'live', menu = false }: ViewP
                   )}
                 </div>
               ))}
-            </div>
+            </RoundNav>
           </div>
         </div>
       </section>
 
-      {/* Groups — broadcast standings */}
+      {/* Groups — stacked full-width so every clan name stays whole; the group name anchors each table. */}
       <section className="bg-[var(--mn-chalk-2)]">
-        <div className={`${wrap} grid gap-16 py-14 md:py-20 xl:grid-cols-2`}>
-          {GROUPS.map((g) => (
-            <div key={g.name.en}>
-              <h2 className="mn-d mb-6 text-4xl md:text-5xl">{g.name[lang]}</h2>
-              <Standings
-                lang={lang}
-                rows={g.rows.map((r) => ({ tag: r.tag, p: r.p, gd: r.gd, pts: r.pts }))}
-                cut={2}
-              />
-            </div>
-          ))}
+        <div className={`${wrap} py-14 md:py-20`}>
+          <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
+            <h2
+              className={`mn-d ${lang === 'ar' ? 'text-5xl md:text-7xl' : 'text-6xl md:text-8xl'}`}
+            >
+              {t(M.chapters.groups, lang)}
+            </h2>
+            <p className="flex items-center gap-2 text-[var(--mn-ink-2)]">
+              <span className="inline-block w-8 border-b-[3px] border-dashed border-[var(--mn-pitch)]" />
+              {t(M.groupsCut, lang)}
+            </p>
+          </div>
+          <div className="flex flex-col gap-12">
+            {GROUPS.map((g) => (
+              <div key={g.name.en} className="flex flex-col gap-3">
+                <h3
+                  className={`mn-d whitespace-nowrap lg:pt-6 ${lang === 'ar' ? 'text-3xl md:text-4xl' : 'text-4xl md:text-5xl'}`}
+                >
+                  {g.name[lang]}
+                </h3>
+                <Standings
+                  lang={lang}
+                  rows={g.rows.map((r) => ({ tag: r.tag, p: r.p, gd: r.gd, pts: r.pts }))}
+                  cut={2}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -1641,7 +1665,7 @@ export function MatchnightTournament({ lang, bug = 'live', menu = false }: ViewP
               className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 border-t-[3px] border-[var(--mn-ink)] py-6"
             >
               <span className="flex min-w-0 items-center justify-end gap-3">
-                <span className="mn-h truncate text-2xl md:text-3xl">
+                <span className="mn-h break-words leading-tight text-2xl md:text-3xl">
                   {clan(m.home).name[lang]}
                 </span>
                 <Crest tag={m.home} className="size-9" />
@@ -1651,7 +1675,7 @@ export function MatchnightTournament({ lang, bug = 'live', menu = false }: ViewP
               </span>
               <span className="flex min-w-0 items-center gap-3">
                 <Crest tag={m.away} className="size-9" />
-                <span className="mn-h truncate text-2xl md:text-3xl">
+                <span className="mn-h break-words leading-tight text-2xl md:text-3xl">
                   {clan(m.away).name[lang]}
                 </span>
               </span>

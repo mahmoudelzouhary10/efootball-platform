@@ -227,10 +227,10 @@ export function MatchnightProfile({ lang, bug = 'live', menu = false }: ViewProp
                     {fmtDate(r.date, lang, { day: 'numeric', month: 'short' })}
                   </span>
                   <div className="min-w-0">
-                    <p className="mn-h flex items-center gap-2 truncate text-2xl md:text-3xl">
+                    <p className="mn-h flex items-center gap-2 break-words text-2xl md:text-3xl">
                       <span className="text-[var(--mn-ink-2)]">{t(Q.vs, lang)}</span>
                       <Crest tag={r.oppClan} className="size-7" />
-                      <span className="truncate">{r.opp[lang]}</span>
+                      <span className="break-words">{r.opp[lang]}</span>
                     </p>
                     <p className="mt-0.5 truncate text-sm text-[var(--mn-ink-2)]">
                       {r.comp[lang]}
@@ -447,7 +447,7 @@ export function MatchnightClan({ lang, bug = 'live', menu = false }: ViewProps) 
             >
               <span className="mn-n text-2xl md:text-3xl">{p.position}</span>
               <span className="mn-h flex min-w-0 items-center gap-2 text-2xl md:text-3xl">
-                <span className="truncate">{p.name[lang]}</span>
+                <span className="break-words">{p.name[lang]}</span>
                 {p.verified && (
                   <BadgeCheck
                     className="size-5 shrink-0 text-[var(--mn-pitch)]"
@@ -502,7 +502,7 @@ export function MatchnightClan({ lang, bug = 'live', menu = false }: ViewProps) 
                   className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 border-t-[3px] border-[var(--mn-ink)] py-4 md:gap-5"
                 >
                   <span className="flex min-w-0 items-center justify-end gap-2.5">
-                    <span className="mn-h truncate text-xl md:text-2xl">
+                    <span className="mn-h break-words text-xl md:text-2xl">
                       {clan(m.home).name[lang]}
                     </span>
                     <Crest tag={m.home} className="size-8" />
@@ -531,7 +531,7 @@ export function MatchnightClan({ lang, bug = 'live', menu = false }: ViewProps) 
                   </span>
                   <span className="flex min-w-0 items-center gap-2.5">
                     {away && <Crest tag={m.away} className="size-8" />}
-                    <span className="mn-h truncate text-xl md:text-2xl">
+                    <span className="mn-h break-words text-xl md:text-2xl">
                       {away ? away.name[lang] : t(C.tour.tbd, lang)}
                     </span>
                   </span>
