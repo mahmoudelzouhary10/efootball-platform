@@ -1,3 +1,29 @@
+/* Preview-only font files (OFL-1.1, licenses alongside in /design-preview/fonts). */
+@font-face {
+  font-family: 'Anton';
+  src: url('/design-preview/fonts/anton-latin-400-normal.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Big Shoulders Display';
+  src: url('/design-preview/fonts/big-shoulders-display-latin-700-normal.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Big Shoulders Display';
+  src: url('/design-preview/fonts/big-shoulders-display-latin-800-normal.woff2') format('woff2');
+  font-weight: 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Big Shoulders Display';
+  src: url('/design-preview/fonts/big-shoulders-display-latin-900-normal.woff2') format('woff2');
+  font-weight: 900;
+  font-display: swap;
+}
+
 /*
  * MATCHNIGHT — editorial by day, broadcast by night. Scoped under .mn.
  * Day (chalk): pages that are read. Night: anything live.
@@ -34,11 +60,32 @@
   color: #fff;
 }
 
+/* Latin display face is a variable so the three candidates can be compared on real screens.
+   Arabic never changes: Alexandria, set on its own terms. */
+.mn {
+  --mn-latin: 'Barlow Condensed';
+  --mn-latin-w: 800;
+  --mn-latin-hw: 700;
+  --mn-latin-lh: 0.86;
+}
+[data-font='anton'] {
+  --mn-latin: 'Anton';
+  --mn-latin-w: 400;
+  --mn-latin-hw: 400;
+  --mn-latin-lh: 0.92;
+}
+[data-font='shoulders'] {
+  --mn-latin: 'Big Shoulders Display';
+  --mn-latin-w: 900;
+  --mn-latin-hw: 800;
+  --mn-latin-lh: 0.84;
+}
+
 /* Display: condensed sports grotesk; Arabic gets its own heavy, taller-leaded setting. */
 .mn-d {
-  font-family: 'Barlow Condensed', 'Alexandria', sans-serif;
-  font-weight: 800;
-  line-height: 0.86;
+  font-family: var(--mn-latin), 'Alexandria', sans-serif;
+  font-weight: var(--mn-latin-w);
+  line-height: var(--mn-latin-lh);
   letter-spacing: -0.01em;
   text-transform: uppercase;
 }
@@ -50,8 +97,8 @@
   text-transform: none;
 }
 .mn-h {
-  font-family: 'Barlow Condensed', 'Alexandria', sans-serif;
-  font-weight: 700;
+  font-family: var(--mn-latin), 'Alexandria', sans-serif;
+  font-weight: var(--mn-latin-hw);
   line-height: 1;
 }
 [dir='rtl'] .mn-h {
@@ -66,6 +113,11 @@
   line-height: 0.85;
   direction: ltr;
   unicode-bidi: isolate;
+}
+/* Big numerals (hero score, dates, ranks) take the display face; data numerals stay Barlow. */
+.mn-n.mn-big {
+  font-family: var(--mn-latin), 'Barlow Condensed', sans-serif;
+  font-weight: var(--mn-latin-w);
 }
 @layer components {
   [dir='rtl'] .mn-n {
@@ -116,10 +168,24 @@
 
 /* Cut-corner metal frame (player card). */
 .mn-cut {
-  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+  clip-path: polygon(
+    0 0,
+    calc(100% - 18px) 0,
+    100% 18px,
+    100% 100%,
+    18px 100%,
+    0 calc(100% - 18px)
+  );
 }
 [dir='rtl'] .mn-cut {
-  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+  clip-path: polygon(
+    18px 0,
+    100% 0,
+    100% calc(100% - 18px),
+    calc(100% - 18px) 100%,
+    0 100%,
+    0 18px
+  );
 }
 .mn-gold {
   background: linear-gradient(140deg, #f6dc8a, #c8921a 45%, #fbe7a6 70%, #a9760f);
